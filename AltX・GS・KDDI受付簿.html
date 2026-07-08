@@ -1,0 +1,862 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>社員検索・カード貸出管理システム</title><style>        /* === 基本設定 === */        :root {            --primary: #4f46e5;            --primary-hover: #4338ca;            --bg-main: #f3f4f6;            --bg-white: #ffffff;            --text-dark: #1f2937;            --text-gray: #4b5563;            --text-light: #9ca3af;            --border-color: #e5e7eb;        }        * {            box-sizing: border-box;            margin: 0;            padding: 0;        }        body {            background-color: var(--bg-main);            font-family: -apple-system, blinkmacsystemfont, "segoe ui", roboto, "helvetica neue", arial, sans-serif;            color: var(--text-dark);            min-height: 100vh;            padding: 16px;        }        /* 画面中央 of メインコンテナ */        .container {            max-width: 1140px;            margin: 0 auto;            background-color: var(--bg-white);            border-radius: 12px;            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);            padding: 24px;        }        /* === ヘッダー === */        .header {            display: flex;            justify-content: space-between;            align-items: center;            border-bottom: 2px solid var(--border-color);            padding-bottom: 16px;            margin-bottom: 24px;            gap: 16px;        }        .header h1 {            font-size: 20px;            font-weight: 700;        }        /* === 2カラム・グリッドレイアウト === */        .grid-layout {            display: grid;            grid-template-columns: 1fr 2fr; /* 左側 1 : 右側 2 */            gap: 24px;        }        @media (max-width: 1024px) {            .grid-layout {                grid-template-columns: 1fr;            }        }        /* === サイドバー・パネル類 === */        .sidebar {            display: flex;            flex-direction: column;            gap: 20px;        }        .sticky-box {            position: -webkit-sticky;            position: sticky;            top: 16px;        }        .panel {            background-color: #f9fafb;            border: 1px solid var(--border-color);            border-radius: 8px;            padding: 20px;            box-shadow: 0 2px 4px rgba(0,0,0,0.02);        }        .panel-admin {            background-color: #fef2f2;            border-color: #fca5a5;        }        .panel h2 {            font-size: 16px;            font-weight: 700;            margin-bottom: 8px;            display: flex;            align-items: center;            gap: 8px;        }        .panel-admin h2 {            color: #991b1b;        }        .panel p {            font-size: 11px;            color: var(--text-gray);            margin-bottom: 16px;            line-height: 1.4;        }        /* === フォーム入力欄 === */        .form-group {            margin-bottom: 12px;        }        .form-group label {            display: block;            font-size: 11px;            font-weight: 700;            color: var(--text-gray);            margin-bottom: 4px;        }        .form-group label span {            color: #dc2626;        }        .input-text {            width: 100%;            padding: 10px;            border: 1px solid #d1d5db;            border-radius: 6px;            font-size: 13px;            -webkit-user-select: text;            user-select: text;        }        .input-text:focus {            outline: none;            border-color: var(--primary);            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);        }        .input-search {            border: 2px solid #60a5fa;            background-color: rgba(239, 246, 255, 0.5);            font-size: 14px;            font-weight: 600;            padding: 12px;        }        .input-search:focus {            border-color: #2563eb;            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);        }        /* === 自動設定のチェックボックス === */
+        .checkbox-container {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e40af;
+            cursor: pointer;
+        }
+        .checkbox-label input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .checkbox-desc {
+            font-size: 10px;
+            color: #2563eb;
+            padding-left: 24px;
+        }
+        /* === ボタン設定 === */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+            transition: background-color 0.15s, transform 0.05s;
+            touch-action: manipulation;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-indigo { background-color: var(--primary); color: white; }
+        .btn-indigo:hover { background-color: var(--primary-hover); }
+        .btn-gray-dark { background-color: #374151; color: white; }
+        .btn-gray-dark:hover { background-color: #1f2937; }
+        .btn-gray-light { background-color: #e5e7eb; color: var(--text-dark); }
+        .btn-gray-light:hover { background-color: #d1d5db; }
+        .btn-red { background-color: #dc2626; color: white; }
+        .btn-red:hover { background-color: #b91c1c; }
+        .btn-full { width: 100%; }
+        /* === 社員一覧表示エリア === */
+        .result-panel {
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .result-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .result-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-gray);
+        }
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .employee-card {
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .employee-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: left;
+            }
+        }
+        .employee-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .employee-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .employee-id-badge {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-gray);
+            background-color: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .employee-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .employee-card-no {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+        .employee-card-no span {
+            font-family: monospace;
+            font-weight: 700;
+        }
+        /* 日時表示用のスタイル */
+        .employee-dates {
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .employee-dates span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* === ステータスバッジ === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 9999px;
+            margin-top: 4px;
+        }
+        .badge-borrowed {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .badge-returned {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .btn-status-toggle {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            text-align: center;
+            min-width: 100px;
+            touch-action: manipulation;
+        }
+        .btn-status-borrow { background-color: #dc2626; }
+        .btn-status-borrow:hover { background-color: #b91c1c; }
+        .btn-status-return { background-color: #16a34a; }
+        .btn-status-return:hover { background-color: #15803d; }
+        .btn-delete-card {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .btn-delete-card:hover {
+            background-color: #fee2e2;
+        }
+        .hidden {
+            display: none !important;
+        }
+        /* === 🔔 トースト通知 === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            transform: translatey(-20px);
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.show {
+            transform: translatey(0);
+            opacity: 1;
+        }
+        .toast-success { background-color: #059669; }
+        .toast-error { background-color: #dc2626; }
+    </style></head><body><div id="toastcontainer" class="toast-container"></div><div class="container"><!-- ==========================================             【1】メイン画面             ========================================== --><div id="mainview"><div class="header"><h1>👤 社員検索・カード貸出ステータス</h1><button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 社員登録・削除 (管理画面)</button></div><div class="grid-layout"><div class="sidebar"><div class="panel sticky-box"><h2>🔍 スキャナー / 手入力 検索</h2><p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p><div class="form-group"><label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label><input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autofocus autocomplete="off"></div><div class="checkbox-container"><label class="checkbox-label"><input type="checkbox" id="autotogglecheck" checked><span>QRコードを持っているか？</span></label><span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　その後、検索キーを手入力しenter</span></div><div class="btn-group"><button id="searchbtn" class="btn btn-gray-dark" style="flex: 1;">検索する</button><button id="clearbtn" class="btn btn-gray-light">クリア</button></div></div></div><div class="result-panel"><div class="result-header"><h2>📋 ステータス一覧</h2><span id="resultcount" class="result-count">該当: 0件</span></div><div id="employeelist" class="employee-list"></div></div></div></div><!-- ==========================================             【2】管理画面             ========================================== --><div id="adminview" class="hidden"><div class="header" style="border-bottom: 2px solid #fca5a5;"><h1 style="color: #b91c1c;">⚙️ 社員情報 管理画面</h1><button onclick="switchview('main')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button></div><div class="grid-layout"><div class="sidebar"><!-- 新規登録 --><div class="panel panel-admin"><h2>➕ 新規社員登録</h2><form id="registerform"><div class="form-group"><label>社員番号(S番/P番) <span>*</span></label><input type="text" id="regid" class="input-text" placeholder="例: S○○○○○○" required></div><div class="form-group"><label>氏名 <span>*</span></label><input type="text" id="regname" class="input-text" placeholder="例: 山田 太郎" required></div><div class="form-group"><label>カード番号 <span>*</span></label><input type="text" id="regcard" class="input-text" placeholder="例: FE○○○○○○A" required></div><div class="form-group"><label>部署名 <span>*</span></label><select id="regdept" class="input-text" style="background-color: white;" required><option value="" disabled selected>選択してください</option><option value="DC運用">DC運用</option><option value="グローブシップ">グローブシップ</option><option value="多摩TCサポート">多摩TCサポート</option><option value="センターG(派遣)">センターG(派遣)</option><option value="テレハウス技術部">テレハウス技術部</option><option value="KDDI社員">KDDI社員</option><option value="SE(AltX)">SE(AltX)</option></select></div><div class="form-group"><label>管理番号 <span>*</span></label><input type="text" id="regadminid" class="input-text" placeholder="例: お好きなものでどうぞ" required></div><button type="submit" class="btn btn-red btn-full" style="margin-top: 8px;">登録する</button></form></div><!-- 💾 データ管理 (バックアップ) --><div class="panel" style="background-color: #f0fdf4; border-color: #86efac;"><h2>💾 データ管理 (バックアップ)</h2><p>登録データをiPad内に保存・復元できます。</p><div style="display: flex; flex-direction: column; gap: 8px;"><!-- 📂 【追加】お好みのフォルダに保存 (ガイド付き) --><button onclick="showfoldersaveguide()" class="btn btn-indigo btn-full" style="background-color: #16a34a;">📥 フォルダに保存</button><!-- コピペ保存 --><button onclick="opentextbackupmodal()" class="btn btn-gray-dark btn-full">📝 コピペで保存・復元 (手動)</button><!-- 復元ボタン --><div style="border-top: 1px solid #bbf7d0; margin-top: 8px; padding-top: 8px;"><label class="btn btn-gray-light btn-full" style="cursor: pointer; display: flex; border: 1px solid #86efac;">                                📤 ファイルから復元                                <input type="file" id="importfile" onchange="importdata(event)" accept=".json" style="display: none;"></label></div></div></div></div><div class="result-panel" style="border-color: #fca5a5;"><div class="result-header" style="border-bottom: 1px solid #fee2e2;"><h2>👥 登録社員名簿（データの削除）</h2><span id="adminresultcount" class="result-count">登録数: 0件</span></div><div id="adminemployeelist" class="employee-list"></div></div></div></div></div><!-- ⚠️ 削除確認ポップアップ画面 --><div id="confirmmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">⚠️ 削除 of 確認</h3><p id="confirmmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.6; word-break: break-all;"></p><div style="display: flex; gap: 12px;"><button id="confirmcancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="confirmokbtn" class="btn btn-red" style="flex: 1; padding: 12px;">本当に削除する</button></div></div></div><!-- 📄 貸出確認ポップアップ画面 --><div id="borrowmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">📋 貸出完了情報</h3><div id="borrowmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.8; text-align: left; background-color: #f3f4f6; padding: 16px; border-radius: 8px;"></div><div style="display: flex; gap: 12px;"><button id="borrowokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px;">OK</button></div></div></div><!-- 📂 【追加】ipad用お好みフォルダ指定保存ガイドモーダル --><div id="foldersavemodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📂 フォルダを指定して保存</h3><div style="font-size: 13px; color: #4b5563; margin-bottom: 20px; line-height: 1.6;"><p style="margin-bottom: 8px; font-weight: bold; color: #4f46e5;">【保存の手順】</p><ol style="padding-left: 20px;"><li style="margin-bottom: 6px;">下の<b>「保存を実行する」</b>ボタンを押してください。</li><li style="margin-bottom: 6px;"><b>「"ファイル"に保存」</b>をタップします。</li><li style="margin-bottom: 6px;">「このiPad内」から、<b>「社員受付データバックアップ」</b>を選択し、右上の「保存」を押します。</li></ol></div><div style="display: flex; gap: 12px;"><button id="foldersavecancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="foldersaveokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px; background-color: #16a34a;">保存を実行する</button></div></div></div><!-- 📝 コピペ用バックアップ/復元ダイアログ --><div id="textbackupmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">📝 テキストでのバックアップ・復元</h3><p style="font-size: 11px; color: #4b5563; margin-bottom: 12px; line-height: 1.4; text-align: left;">            ファイルが保存できない場合の最終手段です。<br><strong>保存の場合：</strong>「全てコピー」を押して、iPadの「メモ」アプリ等に貼り付けて保存してください。<br><strong>復元の場合：</strong>下のコードをすべて削除し、保存してあるテキストを下の枠内に貼り付け、「テキストから復元」を押してください。        </p><textarea id="backuptextarea" style="width: 100%; height: 150px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: none; margin-bottom: 16px;" placeholder="ここにコピー用のコードが表示されます。または、ここに保存したデータを貼り付けます。"></textarea><div style="display: flex; gap: 8px; margin-bottom: 12px;"><button onclick="copybackuptext()" class="btn btn-indigo" style="flex: 1; padding: 10px;">📋 全てコピー</button><button onclick="importbackuptext()" class="btn btn-red" style="flex: 1; padding: 10px;">📥 テキストから復元</button></div><button id="closebackupbtn" class="btn btn-gray-light btn-full" style="padding: 10px;">閉じる</button></div></div><!-- javascript 処理 --><script>    const storage_key = 'employee_status_system_data_v3';        
+    // 🔗 【設定】ここにステップ1で発行した「ウェブアプリのURL」を貼り付けます（"" の中に入れます）
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbSWdS2gAZZTa3AxadkMCqGEviqWSIiJ8RnBxTDPo5oax8NKh7IJxDch1JEHcNRzDW/exec";
+
+    // =======================================================
+    // ⚙️ システム設定エリア（部署ごとの動作管理）
+    // =======================================================
+
+    // 🟢 1. スプレッドシートに送信する部署のリスト（設定A）
+    // ※ ここに並べた部署「だけ」スプレッドシートに自動で送信・記録されます。
+    // ※ カッコの全角・半角や前後の空白は自動判定するのでどちらで書いても問題ありません。
+    const SPREADSHEET_INCLUDE_DEPTS = ["テレハウス技術部", "KDDI社員"];
+
+    // 🔴 2. 貸出時に確認ポップアップ（OKボタン）を「表示しない」部署のリスト
+    // ※ ここに書いた部署の人は、貸出時にOK画面が出ず、即時スキャンが完了します。
+    const POPUP_EXCLUDE_DEPTS = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(AltX)"];
+
+    // =======================================================
+
+    let employees = JSON.parse(localStorage.getItem(storage_key)) || [
+        { id: "P999999", name: "山田 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
+    ];
+    let employeetodeleteid = null; 
+
+    const mainview = document.getElementById('mainview');
+    const adminview = document.getElementById('adminview');
+    const registerform = document.getElementById('registerform');
+    const regid = document.getElementById('regid');
+    const regname = document.getElementById('regname');
+    const regcard = document.getElementById('regcard');
+    const searchinput = document.getElementById('searchinput');
+    const searchbtn = document.getElementById('searchbtn');
+    const clearbtn = document.getElementById('clearbtn');
+    const employeelist = document.getElementById('employeelist');
+    const resultcount = document.getElementById('resultcount');
+    const adminemployeelist = document.getElementById('adminemployeelist');
+    const adminresultcount = document.getElementById('adminresultcount');
+    const autotogglecheck = document.getElementById('autotogglecheck');
+    const toastcontainer = document.getElementById('toastcontainer');
+    const confirmmodal = document.getElementById('confirmmodal');
+    const confirmmessage = document.getElementById('confirmmessage');
+    
+    // 貸出モーダル要素
+    const borrowmodal = document.getElementById('borrowmodal');
+    const borrowmessage = document.getElementById('borrowmessage');
+    const borrowokbtn = document.getElementById('borrowokbtn');
+    
+    // バックアップ用要素
+    const foldersavemodal = document.getElementById('foldersavemodal');
+    const textbackupmodal = document.getElementById('textbackupmodal');
+    const backuptextarea = document.getElementById('backuptextarea');
+    const closebackupbtn = document.getElementById('closebackupbtn');
+
+    let lasttoggletime = 0;
+
+    function savetostorage() {
+        localStorage.setItem(storage_key, JSON.stringify(employees));
+    }
+
+    function getformatteddatetime() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        return `${y}/${m}/${d} ${h}:${min}`;
+    }
+
+    function formatdisplaytime(timestr) {
+        if (!timestr) return "-";
+        if (timestr.length > 16) {
+            return timestr.substring(0, 16);
+        }
+        return timestr;
+    }
+
+    function focussearchinput() {
+        if (!mainview.classList.contains('hidden')) {
+            searchinput.focus();
+        }
+    }
+
+    function switchview(viewname) {
+        if (viewname === 'admin') {
+            mainview.classList.add('hidden');
+            adminview.classList.remove('hidden');
+            renderadmin();
+        } else {
+            adminview.classList.add('hidden');
+            mainview.classList.remove('hidden');
+            rendermain("");
+            focussearchinput();
+        }
+    }
+
+    function showtoast(message, issuccess = true) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${issuccess ? 'toast-success' : 'toast-error'}`;
+        toast.innerHTML = issuccess ? `✨ ${message}` : `⚠ ${message}`;
+        toastcontainer.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => { toast.remove(); }, 300);
+        }, 3500);
+    }
+
+    // =======================================================
+    // 🔍 表記揺れ（全角・半角カッコ、スペース）を自動で統一して安全に比較する判定用関数
+    // =======================================================
+    function normalizeDept(str) {
+        if (!str) return "";
+        return str
+            .replace(/（/g, "(")
+            .replace(/）/g, ")")
+            .replace(/\s+/g, "") // 全角・半角スペースを除去
+            .trim();
+    }
+
+    // =======================================================
+    // 🌐 スプレッドシートに送信するかどうかを判定する関数（設定Aを適用）
+    // =======================================================
+    function shouldSendToSpreadsheet(deptName) {
+        if (!deptName) return false; 
+
+        const normalizedInput = normalizeDept(deptName);
+
+        // 設定した includeDepts に部署名が含まれているか判定
+        if (SPREADSHEET_INCLUDE_DEPTS.length > 0) {
+            return SPREADSHEET_INCLUDE_DEPTS.some(dept => normalizeDept(dept) === normalizedInput);
+        }
+
+        return false; 
+    }
+
+    // =======================================================
+    // 🔴 貸出時に確認ポップアップを除外するか判定する関数
+    // =======================================================
+    function shouldExcludePopup(deptName) {
+        if (!deptName) return false;
+
+        const normalizedInput = normalizeDept(deptName);
+        
+        // リストの中のいずれかの部署と完全に一致するか判定
+        return POPUP_EXCLUDE_DEPTS.some(exDept => normalizeDept(exDept) === normalizedInput);
+    }
+
+    // ==========================================
+    // 🚀 スプレッドシートへリアルタイム送信する関数 (text/plainでCORS回避)
+    // ==========================================
+    function sendToSpreadsheet(emp, action) {
+        if (!GAS_WEB_APP_URL) {
+            return; 
+        }
+
+        // 🟢 設定A（指定した特定の部署だけ送信）フィルターを適用
+        if (!shouldSendToSpreadsheet(emp.dept)) {
+            console.log(`部署「${emp.dept}」は送信対象外のため、スプレッドシートへの記録をスキップしました。`);
+            return; 
+        }
+        
+        const payload = {
+            datetime: getformatteddatetime(),
+            id: emp.id,
+            name: emp.name,
+            dept: emp.dept || "未設定",
+            card: emp.card,
+            adminid: emp.adminid || "未設定",
+            status: action
+        };
+        
+        // iPadでのCORS preflightブロックを回避するため Content-Type を text/plain で送信
+        fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: {
+                "Content-Type": "text/plain"
+            },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            console.log("スプレッドシートへ送信完了");
+        }).catch((err) => {
+            console.error("スプレッドシートへの送信エラー:", err);
+        });
+    }
+
+    // ==========================================
+    // 📂 【追加】お好みのフォルダに保存する処理
+    // ==========================================
+        
+    // 1. 保存ガイドの表示
+    function showfoldersaveguide() {
+        if (employees.length === 0) {
+            alert("登録されている社員データがありません。");
+            return;
+        }
+        foldersavemodal.classList.remove('hidden');
+    }
+
+    // ガイド内のキャンセル処理
+    document.getElementById('foldersavecancelbtn').addEventListener('click', () => {
+        foldersavemodal.classList.add('hidden');
+    });
+
+    // 2. 実際の保存・共有メニューの起動
+    document.getElementById('foldersaveokbtn').addEventListener('click', () => {
+        foldersavemodal.classList.add('hidden');
+        executeexport();
+    });
+
+    function executeexport() {
+        const datastr = JSON.stringify(employees, null, 2);
+
+        // 現在の日時を取得して yyyy-mm-dd-hh-mm-ss_社員受付バックアップ.json を自動作成
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        
+        const today = `${y}-${m}-${d}_${h}-${min}-${s}`;
+        const filename = `${today}_社員受付バックアップ.json`;
+
+        const file = new File([datastr], filename, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file]
+            }).then(() => {
+                showtoast("保存が完了しました！");
+            }).catch((err) => {
+                if (err.name !== 'AbortError') {
+                    fallbackexport(datastr, filename);
+                }
+            });
+        } else {
+            fallbackexport(datastr, filename);
+        }
+    }
+
+    function fallbackexport(datastr, filename) {
+        const blob = new Blob([datastr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showtoast("バックアップファイルをダウンロードしました。");
+    }
+
+    // ファイルから復元
+    function importdata(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importeddata = JSON.parse(e.target.result);
+                if (Array.isArray(importeddata) && (importeddata.length === 0 || ('id' in importeddata[0] && 'name' in importeddata[0]))) {
+                    if (confirm(`ファイルから ${importeddata.length} 件 of 社員データを復元しますか？\n(現在登録されているデータは上書きされます)`)) {
+                        employees = importeddata.map(emp => ({
+                            ...emp,
+                            lastborrowedtime: emp.lastborrowedtime || "",
+                            lastreturnedtime: emp.lastreturnedtime || "",
+                            dept: emp.dept || "未設定",
+                            adminid: emp.adminid || "未設定"
+                        }));
+                        savetostorage();
+                        renderadmin();
+                        showtoast("データを正常に復元しました。");
+                    }
+                } else {
+                    alert("データ形式が正しくありません。正しいバックアップ用jsonファイルを選択してください。");
+                }
+            } catch (err) {
+                alert("ファイルの読み込みに失敗しました。");
+            }
+            event.target.value = "";
+        };
+        reader.readAsText(file);
+    }
+
+    // ==========================================
+    // 📝 コピペバックアップ機能
+    // ==========================================
+    function opentextbackupmodal() {
+        const datastr = JSON.stringify(employees, null, 2);
+        backuptextarea.value = datastr;
+        textbackupmodal.classList.remove('hidden');
+    }
+
+    closebackupbtn.addEventListener('click', () => {
+        textbackupmodal.classList.add('hidden');
+        backuptextarea.value = "";
+    });
+
+    // コピー処理
+    function copybackuptext() {
+        backuptextarea.select();
+        backuptextarea.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(backuptextarea.value)
+            .then(() => {
+                showtoast("コピー完了！iPadの「メモ」等に貼り付けて保存してください。");
+            })
+            .catch(() => {
+                alert("コピーに失敗しました。枠内のテキストを手動で全選択してコピーしてください。");
+            });
+    }
+
+    // テキストから復元処理
+    function importbackuptext() {
+        const inputstr = backuptextarea.value.trim();
+        if (!inputstr) {
+            alert("エラー: 貼り付けられたテキストがありません。");
+            return;
+        }
+        try {
+            const importeddata = JSON.parse(inputstr);
+            if (Array.isArray(importeddata) && (importeddata.length === 0 || ('id' in importeddata[0] && 'name' in importeddata[0]))) {
+                if (confirm(`テキストから ${importeddata.length} 件のデータを復元しますか？\n(現在登録されているデータは上書きされます)`)) {
+                    employees = importeddata.map(emp => ({
+                        ...emp,
+                        lastborrowedtime: emp.lastborrowedtime || "",
+                        lastreturnedtime: emp.lastreturnedtime || "",
+                        dept: emp.dept || "未設定",
+                        adminid: emp.adminid || "未設定"
+                    }));
+                    savetostorage();
+                    textbackupmodal.classList.add('hidden');
+                    backuptextarea.value = "";
+                    renderadmin();
+                    rendermain("");
+                    showtoast("テキストからデータを正常に復元しました。");
+                }
+            } else {
+                alert("データ形式が正しくありません。正しいテキストを貼り付けてください。");
+            }
+        } catch (err) {
+            alert("解析に失敗しました。テキストが壊れているか、貼り付けが不完全な可能性があります。");
+        }
+    }
+
+    // 検索および自動トグル処理
+    function executesearch(keyword) {
+        const cleankeyword = keyword.trim().toLowerCase();
+        const filtered = employees.filter(emp => {
+            return emp.id.toLowerCase().includes(cleankeyword) ||
+                   emp.name.toLowerCase().includes(cleankeyword) ||
+                   emp.card.toLowerCase().includes(cleankeyword);
+        });
+
+        if (autotogglecheck.checked && cleankeyword !== "" && filtered.length === 1) {
+            const now = Date.now();
+            if (now - lasttoggletime < 1000) {
+                searchinput.value = "";
+                return;
+            }
+            lasttoggletime = now;
+            const targetemp = filtered[0];
+            const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
+            const nowtime = getformatteddatetime();
+
+            // 🟢 安全に表記揺れを吸収する新しい関数を使って判定
+            let showModal = false;
+            if (newstatus === 'borrowed' && !shouldExcludePopup(targetemp.dept)) {
+                showModal = true;
+            }
+
+            employees = employees.map(emp => {
+                if (emp.id === targetemp.id) {
+                    const updated = { ...emp, status: newstatus };
+                    if (newstatus === 'borrowed') {
+                        updated.lastborrowedtime = nowtime;
+                    } else {
+                        updated.lastreturnedtime = nowtime;
+                    }
+                    return updated;
+                }
+                return emp;
+            });
+            savetostorage();
+
+            // 🟢 スプレッドシートに貸出・返却ログを即時送信
+            sendToSpreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+
+            const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+            showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+            searchinput.value = "";
+            rendermain("");
+            
+            if (showModal) {
+                borrowmessage.innerHTML = `
+                    <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
+                `;
+                borrowmodal.classList.remove('hidden');
+            } else {
+                focussearchinput();
+            }
+            return;
+        }
+        rendermain(keyword);
+    }
+
+    // メイン画面の描画
+    function rendermain(filterkeyword = "") {
+        employeelist.innerHTML = "";
+        const keyword = filterkeyword.trim().toLowerCase();
+        const filtered = employees.filter(emp => {
+            return emp.id.toLowerCase().includes(keyword) ||
+                   emp.name.toLowerCase().includes(keyword) ||
+                   emp.card.toLowerCase().includes(keyword);
+        });
+
+        resultcount.textContent = `該当: ${filtered.length}件`;
+
+        if (filtered.length === 0) {
+            employeelist.innerHTML = `<div style="text-align: center; padding: 32px 0; color: var(--text-light); font-size: 14px;">該当する社員が見つかりませんでした。</div>`;
+            return;
+        }
+
+        filtered.forEach(emp => {
+            const carddiv = document.createElement('div');
+            carddiv.className = "employee-card";
+            const isborrowed = emp.status === 'borrowed';
+            const statusbadge = isborrowed
+                ? `<span class="badge badge-borrowed">🔴 カード貸し出し中</span>`
+                : `<span class="badge badge-returned">🟢 返却済み</span>`;
+            const actionbutton = isborrowed
+                ? `<button onclick="togglestatus('${emp.id}')" class="btn-status-toggle btn-status-return">返却する</button>`
+                : `<button onclick="togglestatus('${emp.id}')" class="btn-status-toggle btn-status-borrow">貸し出す</button>`;
+
+            const btime = formatdisplaytime(emp.lastborrowedtime);
+            const rtime = formatdisplaytime(emp.lastreturnedtime);
+
+            const deptStr = emp.dept || "未設定";
+            const adminidStr = emp.adminid || "未設定";
+
+            carddiv.innerHTML = `
+                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptStr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidStr}</span></span><div class="employee-dates"><span>📥 最終貸出: <strong>${btime}</strong></span><span>📤 最終返却: <strong>${rtime}</strong></span></div><div>${statusbadge}</div></div><div>${actionbutton}</div>
+            `;
+            employeelist.appendChild(carddiv);
+        });
+    }
+
+    // 管理画面の描画
+    function renderadmin() {
+        adminemployeelist.innerHTML = "";
+        adminresultcount.textContent = `登録数: ${employees.length}件`;
+
+        if (employees.length === 0) {
+            adminemployeelist.innerHTML = `<div style="text-align: center; padding: 32px 0; color: var(--text-light); font-size: 14px;">登録されている社員はいません。</div>`;
+            return;
+        }
+
+        employees.forEach(emp => {
+            const carddiv = document.createElement('div');
+            carddiv.className = "employee-card";
+            const deptStr = emp.dept || "未設定";
+            const adminidStr = emp.adminid || "未設定";
+            carddiv.innerHTML = `
+                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptStr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidStr}</span></span></div><div><button onclick="deleteemployee('${emp.id}')" class="btn-delete-card">🗑️ 削除</button></div>
+            `;
+            adminemployeelist.appendChild(carddiv);
+        });
+    }
+
+    // 手動でのステータス変更
+    function togglestatus(id) {
+        const nowtime = getformatteddatetime();
+        const targetemp = employees.find(emp => emp.id === id);
+        if (!targetemp) return;
+
+        const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
+
+        // 🟢 安全に表記揺れを吸収する新しい関数を使って判定
+        let showModal = false;
+        if (newstatus === 'borrowed' && !shouldExcludePopup(targetemp.dept)) {
+            showModal = true;
+        }
+
+        employees = employees.map(emp => {
+            if (emp.id === id) {
+                const updated = { ...emp, status: newstatus };
+                if (newstatus === 'borrowed') {
+                    updated.lastborrowedtime = nowtime;
+                } else {
+                    updated.lastreturnedtime = nowtime;
+                }
+                return updated;
+            }
+            return emp;
+        });
+        savetostorage();
+        rendermain(searchinput.value);
+
+        // 🟢 スプレッドシートに貸出・返却ログを即時送信
+        sendToSpreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+        
+        if (showModal) {
+            borrowmessage.innerHTML = `
+                <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
+            `;
+            borrowmodal.classList.remove('hidden');
+        } else {
+            focussearchinput();
+        }
+    }
+
+    // 新規登録処理
+    registerform.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = regid.value.trim();
+        const name = regname.value.trim();
+        const card = regcard.value.trim();
+        const dept = document.getElementById('regdept').value;
+        const adminid = document.getElementById('regadminid').value.trim();
+
+        if (employees.some(emp => emp.id === id)) {
+            alert(`エラー: 社員番号 [${id}] は既に登録されています。`);
+            return;
+        }
+        if (employees.some(emp => emp.card === card)) {
+            alert(`エラー: カード番号 [${card}] は既に登録されています。`);
+            return;
+        }
+
+        const newemp = { id, name, card, status: 'returned', lastborrowedtime: "", lastreturnedtime: "", dept, adminid };
+        employees.push(newemp);
+        savetostorage();
+        registerform.reset();
+        renderadmin();
+        showtoast(`「${name}」さんを登録しました。`);
+    });
+
+    // 削除処理（自作ポップアップ）
+    function deleteemployee(id) {
+        const emp = employees.find(e => e.id === id);
+        if (!emp) return;
+        employeetodeleteid = id;
+        confirmmessage.textContent = `本当に「${emp.name}」さん（社員番号: ${emp.id}）の登録データを削除しますか？\n(この操作は取り消せません。)`;
+        confirmmodal.classList.remove('hidden');
+    }
+
+    document.getElementById('confirmcancelbtn').addEventListener('click', () => {
+        confirmmodal.classList.add('hidden');
+        employeetodeleteid = null;
+    });
+
+    document.getElementById('confirmokbtn').addEventListener('click', () => {
+        if (employeetodeleteid) {
+            employees = employees.filter(e => e.id !== employeetodeleteid);
+            savetostorage();
+            renderadmin();
+            showtoast("登録データを削除しました。", false);
+        }
+        confirmmodal.classList.add('hidden');
+        employeetodeleteid = null;
+    });
+
+    // 貸出モーダル「OK」ボタン
+    borrowokbtn.addEventListener('click', () => {
+        borrowmodal.classList.add('hidden');
+        focussearchinput();
+    });
+
+    // 検索イベント
+    searchinput.addEventListener('keypress', (e) => {
+        if (e.key === 'enter' || e.key === 'Enter') {
+            e.preventDefault();
+            executesearch(searchinput.value);
+        }
+    });
+
+    searchbtn.addEventListener('click', () => {
+        executesearch(searchinput.value);
+        focussearchinput();
+    });
+
+    clearbtn.addEventListener('click', () => {
+        searchinput.value = "";
+        rendermain("");
+        focussearchinput();
+    });
+
+    // ipad自動入力対応
+    document.addEventListener('keydown', (e) => {
+        if (!mainview.classList.contains('hidden')) {
+            if (document.activeElement !== searchinput && e.key.length === 1) {
+                searchinput.focus();
+                searchinput.value += e.key;
+                e.preventDefault();
+            }
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (mainview.classList.contains('hidden')) {
+            return;
+        }
+        const clickedbutton = e.target.closest('button');
+        const clickedinput = e.target.closest('input');
+        const clickedlabel = e.target.closest('label');
+        if (!clickedbutton && !clickedinput && !clickedlabel) {
+            focussearchinput();
+        }
+    });
+
+    // 起動処理
+    rendermain("");
+    focussearchinput();
+</script></body></html>
