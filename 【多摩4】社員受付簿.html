@@ -1,4 +1,154 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>社員検索・カード貸出管理システム</title><style>        /* === 基本設定 === */        :root {            --primary: #4f46e5;            --primary-hover: #4338ca;            --bg-main: #f3f4f6;            --bg-white: #ffffff;            --text-dark: #1f2937;            --text-gray: #4b5563;            --text-light: #9ca3af;            --border-color: #e5e7eb;        }        * {            box-sizing: border-box;            margin: 0;            padding: 0;        }        body {            background-color: var(--bg-main);            font-family: -apple-system, blinkmacsystemfont, "segoe ui", roboto, "helvetica neue", arial, sans-serif;            color: var(--text-dark);            min-height: 100vh;            padding: 16px;        }        /* 画面中央のメインコンテナ */        .container {            max-width: 1140px;            margin: 0 auto;            background-color: var(--bg-white);            border-radius: 12px;            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);            padding: 24px;        }        /* === ヘッダー === */        .header {            display: flex;            justify-content: space-between;            align-items: center;            border-bottom: 2px solid var(--border-color);            padding-bottom: 16px;            margin-bottom: 24px;            gap: 16px;        }        .header h1 {            font-size: 20px;            font-weight: 700;        }        /* === 2カラム・グリッドレイアウト === */        .grid-layout {            display: grid;            grid-template-columns: 1fr 2fr; /* 左側 1 : 右側 2 */            gap: 24px;        }        @media (max-width: 1024px) {            .grid-layout {                grid-template-columns: 1fr;            }        }        /* === サイドバー・パネル類 === */        .sidebar {            display: flex;            flex-direction: column;            gap: 20px;        }        .sticky-box {            position: -webkit-sticky;            position: sticky;            top: 16px;        }        .panel {            background-color: #f9fafb;            border: 1px solid var(--border-color);            border-radius: 8px;            padding: 20px;            box-shadow: 0 2px 4px rgba(0,0,0,0.02);        }        .panel-admin {            background-color: #fef2f2;            border-color: #fca5a5;        }        .panel h2 {            font-size: 16px;            font-weight: 700;            margin-bottom: 8px;            display: flex;            align-items: center;            gap: 8px;        }        .panel-admin h2 {            color: #991b1b;        }        .panel p {            font-size: 11px;            color: var(--text-gray);            margin-bottom: 16px;            line-height: 1.4;        }        /* === フォーム入力欄 === */        .form-group {            margin-bottom: 12px;        }        .form-group label {            display: block;            font-size: 11px;            font-weight: 700;            color: var(--text-gray);            margin-bottom: 4px;        }        .form-group label span {            color: #dc2626;        }        .input-text {            width: 100%;            padding: 10px;            border: 1px solid #d1d5db;            border-radius: 6px;            font-size: 13px;            -webkit-user-select: text;            user-select: text;        }        .input-text:focus {            outline: none;            border-color: var(--primary);            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);        }        .input-search {            border: 2px solid #60a5fa;            background-color: rgba(239, 246, 255, 0.5);            font-size: 14px;            font-weight: 600;            padding: 12px;        }        .input-search:focus {            border-color: #2563eb;            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);        }        /* === 自動設定のチェックボックス === */
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>社員検索・カード貸出管理システム</title><style>
+        /* === 基本設定 === */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f3f4f6;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --text-light: #9ca3af;
+            --border-color: #e5e7eb;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: var(--bg-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-dark);
+            height: 100vh; /* 画面の高さいっぱいに固定 */
+            overflow: hidden; /* 全体のスクロールを禁止 */
+            padding: 16px;
+        }
+        /* 画面中央のメインコンテナ */
+        .container {
+            max-width: 1140px;
+            height: calc(100vh - 32px); /* 画面の高さから上下の余白を引いたサイズに固定 */
+            margin: 0 auto;
+            background-color: var(--bg-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        /* メインビューと管理ビューをコンテナの高さ100%に */
+        #mainview, #adminview {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        /* === ヘッダー === */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            gap: 16px;
+            flex-shrink: 0; /* ヘッダーが潰れないように固定 */
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        /* === 2カラム・グリッドレイアウト === */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* 左側 1 : 右側 2 */
+            gap: 24px;
+            flex-grow: 1; /* 余った高さを一杯に使う */
+            overflow: hidden; /* はみ出しをカット */
+            height: 100%;
+        }
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+                overflow-y: auto; /* 画面が狭い場合は念のためスクロールを許可 */
+            }
+        }
+        /* === サイドバー・パネル類 === */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* パネル同士の余白を16pxに狭めてコンパクトに */
+            height: 100%;
+            overflow-y: auto; /* 3つのパネルが増えてもサイドバー内だけでスクロール */
+            padding-right: 4px;
+        }
+        .panel {
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px; /* パディングを16pxに狭めてコンパクトに */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            flex-shrink: 0;
+        }
+        .panel-admin {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+        }
+        .panel h2 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-admin h2 {
+            color: #991b1b;
+        }
+        .panel p {
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        /* === フォーム入力欄 === */
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+        }
+        .form-group label span {
+            color: #dc2626;
+        }
+        .input-text {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .input-text:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+        .input-search {
+            border: 2px solid #60a5fa;
+            background-color: rgba(239, 246, 255, 0.5);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px;
+        }
+        .input-search:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        /* === 自動設定のチェックボックス === */
         .checkbox-container {
             background-color: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -65,9 +215,10 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
-            min-height: 400px;
+            height: 100%; /* 親の高さ（100%）に固定 */
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* はみ出しを防止 */
         }
         .result-header {
             display: flex;
@@ -76,6 +227,7 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 12px;
             margin-bottom: 16px;
+            flex-shrink: 0;
         }
         .result-header h2 {
             font-size: 16px;
@@ -91,9 +243,9 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 500px;
-            overflow-y: auto;
-            flex-grow: 1;
+            overflow-y: auto; /* 名簿のリストの中だけをスクロールさせる */
+            flex-grow: 1; /* 余った縦幅をすべて名簿エリアにする */
+            max-height: none; /* 500px固定制限を解除 */
         }
         .employee-card {
             background-color: var(--bg-white);
@@ -230,41 +382,45 @@
             font-size: 13px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: all 0.3s ease;
-            transform: translatey(-20px);
+            transform: translateY(-20px);
             opacity: 0;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         .toast.show {
-            transform: translatey(0);
+            transform: translateY(0);
             opacity: 1;
         }
         .toast-success { background-color: #059669; }
         .toast-error { background-color: #dc2626; }
-    </style></head><body><div id="toastcontainer" class="toast-container"></div><div class="container"><!-- ==========================================             【1】メイン画面             ========================================== --><div id="mainview"><div class="header"><h1>👤 社員検索・カード貸出ステータス</h1><button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 社員登録・削除 (管理画面)</button></div><div class="grid-layout"><div class="sidebar"><div class="panel sticky-box"><h2>🔍 スキャナー / 手入力 検索</h2><p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p><div class="form-group"><label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label><input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autofocus autocomplete="off"></div><div class="checkbox-container"><label class="checkbox-label"><input type="checkbox" id="autotogglecheck" checked><span>QRコードを持っているか？</span></label><span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　その後、検索キーを手入力しenter</span></div><div class="btn-group"><button id="searchbtn" class="btn btn-gray-dark" style="flex: 1;">検索する</button><button id="clearbtn" class="btn btn-gray-light">クリア</button></div></div></div><div class="result-panel"><div class="result-header"><h2>📋 ステータス一覧</h2><span id="resultcount" class="result-count">該当: 0件</span></div><div id="employeelist" class="employee-list"></div></div></div></div><!-- ==========================================             【2】管理画面             ========================================== --><div id="adminview" class="hidden"><div class="header" style="border-bottom: 2px solid #fca5a5;"><h1 style="color: #b91c1c;">⚙️ 社員情報 管理画面</h1><button onclick="switchview('main')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button></div><div class="grid-layout"><div class="sidebar"><!-- 新規登録 --><div class="panel panel-admin"><h2>➕ 新規社員登録</h2><form id="registerform"><div class="form-group"><label>社員番号(S番/P番) <span>*</span></label><input type="text" id="regid" class="input-text" placeholder="例: S○○○○○○" required></div><div class="form-group"><label>氏名 <span>*</span></label><input type="text" id="regname" class="input-text" placeholder="例: 山田 太郎" required></div><div class="form-group"><label>カード番号 <span>*</span></label><input type="text" id="regcard" class="input-text" placeholder="例: FE○○○○○○A" required></div><div class="form-group"><label>部署名 <span>*</span></label><select id="regdept" class="input-text" style="background-color: white;" required><option value="" disabled selected>選択してください</option><option value="DC運用">DC運用</option><option value="グローブシップ">グローブシップ</option><option value="多摩TCサポート">多摩TCサポート</option><option value="センターG(派遣)">センターG(派遣)</option><option value="テレハウス技術部">テレハウス技術部</option><option value="KDDI社員">KDDI社員</option><option value="SE(AltX)">SE(AltX)</option></select></div><div class="form-group"><label>管理番号 <span>*</span></label><input type="text" id="regadminid" class="input-text" placeholder="例: お好きなものでどうぞ" required></div><button type="submit" class="btn btn-red btn-full" style="margin-top: 8px;">登録する</button></form></div><!-- 💾 データ管理 (バックアップ) --><div class="panel" style="background-color: #f0fdf4; border-color: #86efac;"><h2>💾 データ管理 (バックアップ)</h2><p>登録データをiPad内に保存・復元できます。</p><div style="display: flex; flex-direction: column; gap: 8px;"><!-- 📂 【追加】お好みのフォルダに保存 (ガイド付き) --><button onclick="showfoldersaveguide()" class="btn btn-indigo btn-full" style="background-color: #16a34a;">📥 フォルダに保存</button><!-- コピペ保存 --><button onclick="opentextbackupmodal()" class="btn btn-gray-dark btn-full">📝 コピペで保存・復元 (手動)</button><!-- 復元ボタン --><div style="border-top: 1px solid #bbf7d0; margin-top: 8px; padding-top: 8px;"><label class="btn btn-gray-light btn-full" style="cursor: pointer; display: flex; border: 1px solid #86efac;">                                📤 ファイルから復元                                <input type="file" id="importfile" onchange="importdata(event)" accept=".json" style="display: none;"></label></div></div></div></div><div class="result-panel" style="border-color: #fca5a5;"><div class="result-header" style="border-bottom: 1px solid #fee2e2;"><h2>👥 登録社員名簿（データの削除）</h2><span id="adminresultcount" class="result-count">登録数: 0件</span></div><div id="adminemployeelist" class="employee-list"></div></div></div></div></div><!-- ⚠️ 削除確認ポップアップ画面 --><div id="confirmmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">⚠️ 削除確認</h3><p id="confirmmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.6; word-break: break-all;"></p><div style="display: flex; gap: 12px;"><button id="confirmcancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="confirmokbtn" class="btn btn-red" style="flex: 1; padding: 12px;">本当に削除する</button></div></div></div><!-- 📄 貸出確認ポップアップ画面 --><div id="borrowmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">📋 貸出完了情報</h3><div id="borrowmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.8; text-align: left; background-color: #f3f4f6; padding: 16px; border-radius: 8px;"></div><div style="display: flex; gap: 12px;"><button id="borrowokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px;">OK</button></div></div></div><!-- 📂 【追加】ipad用お好みフォルダ指定保存ガイドモーダル --><div id="foldersavemodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📂 フォルダを指定して保存</h3><div style="font-size: 13px; color: #4b5563; margin-bottom: 20px; line-height: 1.6;"><p style="margin-bottom: 8px; font-weight: bold; color: #4f46e5;">【保存の手順】</p><ol style="padding-left: 20px;"><li style="margin-bottom: 6px;">下の<b>「保存を実行する」</b>ボタンを押してください。</li><li style="margin-bottom: 6px;"><b>「"ファイル"に保存」</b>をタップします。</li><li style="margin-bottom: 6px;">「このiPad内」から、<b>「社員受付データバックアップ」</b>を選択し、右上の「保存」を押します。</li></ol></div><div style="display: flex; gap: 12px;"><button id="foldersavecancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="foldersaveokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px; background-color: #16a34a;">保存を実行する</button></div></div></div><!-- 📝 コピペ用バックアップ/復元ダイアログ --><div id="textbackupmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">📝 テキストでのバックアップ・復元</h3><p style="font-size: 11px; color: #4b5563; margin-bottom: 12px; line-height: 1.4; text-align: left;">            ファイルが保存できない場合の最終手段です。<br><strong>保存の場合：</strong>「全てコピー」を押して、iPadの「メモ」アプリ等に貼り付けて保存してください。<br><strong>復元の場合：</strong>下のコードをすべて削除し、保存してあるテキストを下の枠内に貼り付け、「テキストから復元」を押してください。        </p><textarea id="backuptextarea" style="width: 100%; height: 150px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: none; margin-bottom: 16px;" placeholder="ここにコピー用のコードが表示されます。または、ここに保存したデータを貼り付けます。"></textarea><div style="display: flex; gap: 8px; margin-bottom: 12px;"><button onclick="copybackuptext()" class="btn btn-indigo" style="flex: 1; padding: 10px;">📋 全てコピー</button><button onclick="importbackuptext()" class="btn btn-red" style="flex: 1; padding: 10px;">📥 テキストから復元</button></div><button id="closebackupbtn" class="btn btn-gray-light btn-full" style="padding: 10px;">閉じる</button></div></div><!-- javascript 処理 --><script>    const storage_key = 'employee_status_system_data_v3';        
-    // 🔗 【設定】ここにステップ1で発行した「ウェブアプリのURL」を貼り付けます（"" の中に入れます）
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbSWdS2gAZZTa3AxadkMCqGEviqWSIiJ8RnBxTDPo5oax8NKh7IJxDch1JEHcNRzDW/exec";
+    </style></head><body><div id="toastcontainer" class="toast-container"></div><div class="container"><!-- ==========================================             
+         【1】メイン画面             
+         ========================================== --><div id="mainview"><div class="header"><h1>👤 社員検索・カード貸出ステータス</h1><button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 社員登録・削除 (管理画面)</button></div><div class="grid-layout"><div class="sidebar"><!-- 【1】検索キーパネル --><div class="panel"><h2>🔍 スキャナー / 手入力 検索</h2><p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p><div class="form-group"><label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label><input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autofocus autocomplete="off"></div><div class="checkbox-container"><label class="checkbox-label"><input type="checkbox" id="autotogglecheck" checked><span>QRコードを持っているか？</span></label><span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　その後、検索キーを手入力しEnter</span></div><div class="btn-group"><button id="searchbtn" class="btn btn-gray-dark" style="flex: 1;">検索する</button><button id="clearbtn" class="btn btn-gray-light">クリア</button></div></div><!-- 【2】サマリー＆クイックフィルターパネル --><div class="panel" style="background-color: #f0fdf4; border-color: #86efac;"><h2>📊 貸出枚数カウント</h2><p>本日および現在のカード貸出状況です。</p><div style="display: flex; gap: 8px; margin-bottom: 12px; margin-top: 8px;"><div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; text-align: center;"><div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">現在貸出中</div><div id="summary-borrowed-count" style="font-size: 20px; font-weight: bold; color: #dc2626; margin-top: 2px;">0</div></div><div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; text-align: center;"><div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">本日貸出数</div><div id="summary-today-count" style="font-size: 20px; font-weight: bold; color: #16a34a; margin-top: 2px;">0</div></div></div><button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white;">🔴 貸出中メンバーだけを表示</button></div><!-- 【3】直近の受付履歴パネル（新規追加） --><div class="panel" style="background-color: #f8fafc; border-color: #cbd5e1; margin-bottom: 16px;"><h2>📜 直近の受付履歴</h2><p style="margin-bottom: 8px;">最近の貸出・返却の履歴（最新5件）です。</p><div id="log-list" style="display: flex; flex-direction: column; gap: 6px;"><!-- 履歴がJSによってここに1行ずつ挿入されます --></div></div></div><div class="result-panel"><div class="result-header"><h2>📋 ステータス一覧</h2><span id="resultcount" class="result-count">該当: 0件</span></div><div id="employeelist" class="employee-list"></div></div></div></div><!-- ==========================================             
+         【2】管理画面             
+         ========================================== --><div id="adminview" class="hidden"><div class="header" style="border-bottom: 2px solid #fca5a5;"><h1 style="color: #b91c1c;">⚙️ 社員情報 管理画面</h1><button onclick="switchview('main')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button></div><div class="grid-layout"><div class="sidebar"><!-- 新規登録 --><div class="panel panel-admin"><h2>➕ 新規社員登録</h2><form id="registerform"><div class="form-group"><label>社員番号(S番/P番) <span>*</span></label><input type="text" id="regid" class="input-text" placeholder="例: S○○○○○○" required></div><div class="form-group"><label>氏名 <span>*</span></label><input type="text" id="regname" class="input-text" placeholder="例: 多摩 太郎" required></div><div class="form-group"><label>カード番号 <span>*</span></label><input type="text" id="regcard" class="input-text" placeholder="例: FE○○○○○○A" required></div><div class="form-group"><label>カテゴリ <span>*</span></label><select id="regdept" class="input-text" style="background-color: white;" required><option value="" disabled selected>選択してください</option><option value="DC運用">DC運用</option><option value="グローブシップ">グローブシップ</option><option value="多摩TCサポート">多摩TCサポート</option><option value="センターG(派遣)">センターG(派遣)</option><option value="テレハウス技術部">テレハウス技術部</option><option value="KDDI社員">KDDI社員</option><option value="SE(ALTX)">SE(ALTX)</option></select></div><div class="form-group"><label>管理番号 <span>*</span></label><input type="text" id="regadminid" class="input-text" placeholder="例: お好きなものでどうぞ" required></div><button type="submit" class="btn btn-red btn-full" style="margin-top: 8px;">登録する</button></form></div><!-- 💾 データ管理 (バックアップ) --><div class="panel" style="background-color: #f0fdf4; border-color: #86efac;"><h2>💾 データ管理 (バックアップ)</h2><p>登録データをiPad内に保存・復元できます。</p><div style="display: flex; flex-direction: column; gap: 8px;"><!-- 📂 お好みのフォルダに保存 (ガイド付き) --><button onclick="showfoldersaveguide()" class="btn btn-indigo btn-full" style="background-color: #16a34a;">📥 フォルダに保存</button><!-- 復元ボタン --><div style="border-top: 1px solid #bbf7d0; margin-top: 8px; padding-top: 8px;"><label class="btn btn-gray-light btn-full" style="cursor: pointer; display: flex; border: 1px solid #86efac;">
+                                📤 ファイルから復元
+                                <input type="file" id="importfile" onchange="importdata(event)" accept=".json" style="display: none;"></label></div></div></div></div><div class="result-panel" style="border-color: #fca5a5;"><div class="result-header" style="border-bottom: 1px solid #fee2e2;"><h2>👥 登録社員名簿（データの編集・削除）</h2><span id="adminresultcount" class="result-count">登録数: 0件</span></div><div id="adminemployeelist" class="employee-list"></div></div></div></div></div><!-- ⚠️ 削除確認ポップアップ画面 --><div id="confirmmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1f2937;">⚠️ 削除確認</h3><p id="confirmmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.6; word-break: break-all;"></p><div style="display: flex; gap: 12px;"><button id="confirmcancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="confirmokbtn" class="btn btn-red" style="flex: 1; padding: 12px;">本当に削除する</button></div></div></div><!-- 📄 カード貸出確認ポップアップ画面 --><div id="borrowmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937;">📋 カード貸出確認</h3><p style="font-size: 13px; color: #4b5563; margin-bottom: 12px; text-align: left; font-weight: bold;">以下の社員へカードを貸し出しますか？</p><div id="borrowmessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.8; text-align: left; background-color: #f3f4f6; padding: 16px; border-radius: 8px;"></div><div style="display: flex; gap: 12px;"><button id="borrowcancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="borrowokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px;">OK（貸出確定）</button></div></div></div><!-- 📂 iPad用お好みフォルダ指定保存ガイドモーダル --><div id="foldersavemodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📂 フォルダを指定して保存</h3><div style="font-size: 13px; color: #4b5563; margin-bottom: 20px; line-height: 1.6;"><p style="margin-bottom: 8px; font-weight: bold; color: #4f46e5;">【保存の手順】</p><ol style="padding-left: 20px;"><li style="margin-bottom: 6px;">下の<b>「保存を実行する」</b>ボタンを押してください。</li><li style="margin-bottom: 6px;"><b>「"ファイル"に保存」</b>をタップします。</li><li style="margin-bottom: 6px;">「このiPad内」から、<b>「社員受付データバックアップ」</b>を選択し、右上の「保存」を押します。</li></ol></div><div style="display: flex; gap: 12px;"><button id="foldersavecancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button id="foldersaveokbtn" class="btn btn-indigo" style="flex: 1; padding: 12px; background-color: #16a34a;">保存を実行する</button></div></div></div><!-- 📝 社員情報編集ポップアップ画面 --><div id="editmodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📝 社員情報の編集</h3><form id="editform"><input type="hidden" id="editoldid"> <!-- 元のIDを保持 --><div class="form-group"><label>社員番号(S番/P番) <span>*</span></label><input type="text" id="editid" class="input-text" required></div><div class="form-group"><label>氏名 <span>*</span></label><input type="text" id="editname" class="input-text" required></div><div class="form-group"><label>カード番号 <span>*</span></label><input type="text" id="editcard" class="input-text" required></div><div class="form-group"><label>カテゴリ <span>*</span></label><select id="editdept" class="input-text" style="background-color: white;" required><option value="DC運用">DC運用</option><option value="グローブシップ">グローブシップ</option><option value="多摩TCサポート">多摩TCサポート</option><option value="センターG(派遣)">センターG(派遣)</option><option value="テレハウス技術部">テレハウス技術部</option><option value="KDDI社員">KDDI社員</option><option value="SE(ALTX)">SE(ALTX)</option></select></div><div class="form-group"><label>管理番号 <span>*</span></label><input type="text" id="editadminid" class="input-text" required></div><div style="display: flex; gap: 12px; margin-top: 24px;"><button type="button" id="editcancelbtn" class="btn btn-gray-light" style="flex: 1; padding: 12px;">キャンセル</button><button type="submit" class="btn btn-indigo" style="flex: 1; padding: 12px;">変更を保存</button></div></form></div></div><!-- 🚨 エラー確認ポップアップ画面 --><div id="errormodal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10005; display: flex; align-items: center; justify-content: center; padding: 16px;"><div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;"><h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #dc2626;">🚨 エラー</h3><p id="errormessage" style="font-size: 14px; color: #4b5563; margin-bottom: 24px; line-height: 1.6; word-break: break-all;"></p><div style="display: flex; gap: 12px;"><button id="errorokbtn" class="btn btn-red" style="flex: 1; padding: 12px;">OK</button></div></div></div><!-- JavaScript 処理 --><script>
+    const storage_key = 'employee_status_system_data_v3';
+    const gas_web_app_url = "https://script.google.com/macros/s/akfycbxbswds2gazzta3axadkmcqgeviqwsiij8rnbxtdpo5oax8nkh7ijxdch1jehcnrzdw/exec";
 
-    // =======================================================
-    // ⚙️ システム設定エリア（部署ごとの動作管理）
-    // =======================================================
-
-    // 🟢 1. スプレッドシートに送信する部署のリスト（設定A）
-    // ※ ここに並べた部署「だけ」スプレッドシートに自動で送信・記録されます。
-    // ※ カッコの全角・半角や前後の空白は自動判定するのでどちらで書いても問題ありません。
-    const SPREADSHEET_INCLUDE_DEPTS = ["テレハウス技術部", "KDDI社員"];
-
-    // 🔴 2. 貸出時に確認ポップアップ（OKボタン）を「表示しない」部署のリスト
-    // ※ ここに書いた部署の人は、貸出時にOK画面が出ず、即時スキャンが完了します。
-    const POPUP_EXCLUDE_DEPTS = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(AltX)"];
-
-    // =======================================================
+    // システム設定
+    const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員"];
+    const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
 
     let employees = JSON.parse(localStorage.getItem(storage_key)) || [
-        { id: "P999999", name: "山田 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
+        { id: "P999999", name: "多摩 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
     ];
-    let employeetodeleteid = null; 
+    let employeetodeleteid = null;
+
+    // 💡 履歴ログ管理用（新規追加：ストレージと連携）
+    let logs = JSON.parse(localStorage.getItem(storage_key + '_logs')) || [];
+
+    // 絞り込みトグル用の変数
+    let showOnlyBorrowed = false;
+
+    // 確認待ちの社員情報用変数
+    let pendingBorrowEmployee = null;
 
     const mainview = document.getElementById('mainview');
     const adminview = document.getElementById('adminview');
@@ -283,22 +439,125 @@
     const toastcontainer = document.getElementById('toastcontainer');
     const confirmmodal = document.getElementById('confirmmodal');
     const confirmmessage = document.getElementById('confirmmessage');
-    
-    // 貸出モーダル要素
     const borrowmodal = document.getElementById('borrowmodal');
     const borrowmessage = document.getElementById('borrowmessage');
     const borrowokbtn = document.getElementById('borrowokbtn');
-    
-    // バックアップ用要素
+    const borrowcancelbtn = document.getElementById('borrowcancelbtn');
     const foldersavemodal = document.getElementById('foldersavemodal');
-    const textbackupmodal = document.getElementById('textbackupmodal');
-    const backuptextarea = document.getElementById('backuptextarea');
-    const closebackupbtn = document.getElementById('closebackupbtn');
+
+    // サマリー表示要素
+    const summaryBorrowedCount = document.getElementById('summary-borrowed-count');
+    const summaryTodayCount = document.getElementById('summary-today-count');
+    const filterBorrowedBtn = document.getElementById('filter-borrowed-btn');
+
+    // 編集モーダルの要素
+    const editmodal = document.getElementById('editmodal');
+    const editform = document.getElementById('editform');
+    const editoldid = document.getElementById('editoldid');
+    const editid = document.getElementById('editid');
+    const editname = document.getElementById('editname');
+    const editcard = document.getElementById('editcard');
+    const editdept = document.getElementById('editdept');
+    const editadminid = document.getElementById('editadminid');
+    const editcancelbtn = document.getElementById('editcancelbtn');
+
+    // 自作エラーモーダルの要素
+    const errormodal = document.getElementById('errormodal');
+    const errormessage = document.getElementById('errormessage');
+    const errorokbtn = document.getElementById('errorokbtn');
 
     let lasttoggletime = 0;
 
     function savetostorage() {
         localStorage.setItem(storage_key, JSON.stringify(employees));
+        updateSummary();
+    }
+
+    // 💡 履歴ログをメモリとストレージに追加して再描画する関数（新規追加）
+    function addLog(name, action) {
+        const now = new Date();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const logTime = `${m}/${d} ${h}:${min}`;
+
+        const newLog = { time: logTime, name: name, action: action };
+        logs.unshift(newLog); // 最新のものを先頭に挿入
+        
+        if (logs.length > 5) {
+            logs.pop(); // 5件を超えたら古いものを削除
+        }
+        
+        localStorage.setItem(storage_key + '_logs', JSON.stringify(logs));
+        renderLogs();
+    }
+
+    // 💡 履歴ログ一覧を画面にレンダリングする関数（新規追加）
+    function renderLogs() {
+        const logList = document.getElementById('log-list');
+        logList.innerHTML = "";
+        
+        if (logs.length === 0) {
+            logList.innerHTML = `<div style="text-align: center; color: var(--text-light); font-size: 11px; padding: 8px 0;">受付履歴はありません</div>`;
+            return;
+        }
+
+        logs.forEach(log => {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.style.alignItems = 'center';
+            item.style.fontSize = '11px';
+            item.style.padding = '4px 0';
+            item.style.borderBottom = '1px dashed var(--border-color)';
+            
+            const isBorrow = log.action === '貸出';
+            const actionBadge = isBorrow 
+                ? `<span style="color: #dc2626; font-weight: bold;">[貸出]</span>` 
+                : `<span style="color: #16a34a; font-weight: bold;">[返却]</span>`;
+                
+            item.innerHTML = `
+                <span style="color: var(--text-gray); font-family: monospace;">${log.time}</span><span style="font-weight: bold; flex-grow: 1; margin-left: 8px; color: var(--text-dark); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.name}</span><span>${actionBadge}</span>
+            `;
+            logList.appendChild(item);
+        });
+    }
+
+    // 自作エラーモーダル表示関数
+    function showerror(msg) {
+        errormessage.innerHTML = msg;
+        errormodal.classList.remove('hidden');
+    }
+
+    // 今日の「YYYY/MM/DD」文字列を返す
+    function getTodayDateStr() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}/${m}/${d}`;
+    }
+
+    // リアルタイムサマリーの数値を計算して表示更新する関数
+    function updateSummary() {
+        const todayStr = getTodayDateStr();
+        let borrowedCount = 0;
+        let todayCount = 0;
+
+        employees.forEach(emp => {
+            // 現在貸出中の件数
+            if (emp.status === 'borrowed') {
+                borrowedCount++;
+            }
+            // 本日中に貸し出された件数の累計
+            if (emp.lastborrowedtime && emp.lastborrowedtime.startsWith(todayStr)) {
+                todayCount++;
+            }
+        });
+
+        summaryBorrowedCount.textContent = borrowedCount;
+        summaryTodayCount.textContent = todayCount;
     }
 
     function getformatteddatetime() {
@@ -352,58 +611,35 @@
         }, 3500);
     }
 
-    // =======================================================
-    // 🔍 表記揺れ（全角・半角カッコ、スペース）を自動で統一して安全に比較する判定用関数
-    // =======================================================
-    function normalizeDept(str) {
+    function normalizedept(str) {
         if (!str) return "";
         return str
             .replace(/（/g, "(")
             .replace(/）/g, ")")
-            .replace(/\s+/g, "") // 全角・半角スペースを除去
+            .replace(/\s+/g, "")
             .trim();
     }
 
-    // =======================================================
-    // 🌐 スプレッドシートに送信するかどうかを判定する関数（設定Aを適用）
-    // =======================================================
-    function shouldSendToSpreadsheet(deptName) {
-        if (!deptName) return false; 
-
-        const normalizedInput = normalizeDept(deptName);
-
-        // 設定した includeDepts に部署名が含まれているか判定
-        if (SPREADSHEET_INCLUDE_DEPTS.length > 0) {
-            return SPREADSHEET_INCLUDE_DEPTS.some(dept => normalizeDept(dept) === normalizedInput);
+    function shouldsendtospreadsheet(deptname) {
+        if (!deptname) return false;
+        const normalizedinput = normalizedept(deptname);
+        if (spreadsheet_include_depts.length > 0) {
+            return spreadsheet_include_depts.some(dept => normalizedept(dept) === normalizedinput);
         }
-
-        return false; 
+        return false;
     }
 
-    // =======================================================
-    // 🔴 貸出時に確認ポップアップを除外するか判定する関数
-    // =======================================================
-    function shouldExcludePopup(deptName) {
-        if (!deptName) return false;
-
-        const normalizedInput = normalizeDept(deptName);
-        
-        // リストの中のいずれかの部署と完全に一致するか判定
-        return POPUP_EXCLUDE_DEPTS.some(exDept => normalizeDept(exDept) === normalizedInput);
+    function shouldexcludepopup(deptname) {
+        if (!deptname) return false;
+        const normalizedinput = normalizedept(deptname);
+        return popup_exclude_depts.some(exdept => normalizedept(exdept) === normalizedinput);
     }
 
-    // ==========================================
-    // 🚀 スプレッドシートへリアルタイム送信する関数 (text/plainでCORS回避)
-    // ==========================================
-    function sendToSpreadsheet(emp, action) {
-        if (!GAS_WEB_APP_URL) {
-            return; 
-        }
-
-        // 🟢 設定A（指定した特定の部署だけ送信）フィルターを適用
-        if (!shouldSendToSpreadsheet(emp.dept)) {
-            console.log(`部署「${emp.dept}」は送信対象外のため、スプレッドシートへの記録をスキップしました。`);
-            return; 
+    function sendtospreadsheet(emp, action) {
+        if (!gas_web_app_url) return;
+        if (!shouldsendtospreadsheet(emp.dept)) {
+            console.log(`部署「${emp.dept}」は送信対象外のためスルーします。`);
+            return;
         }
         
         const payload = {
@@ -412,14 +648,12 @@
             name: emp.name,
             dept: emp.dept || "未設定",
             card: emp.card,
-            adminid: emp.adminid || "未設定",
             status: action
         };
-        
-        // iPadでのCORS preflightブロックを回避するため Content-Type を text/plain で送信
-        fetch(GAS_WEB_APP_URL, {
+
+        fetch(gas_web_app_url, {
             method: "POST",
-            mode: "no-cors", 
+            mode: "no-cors",
             headers: {
                 "Content-Type": "text/plain"
             },
@@ -431,25 +665,18 @@
         });
     }
 
-    // ==========================================
-    // 📂 【追加】お好みのフォルダに保存する処理
-    // ==========================================
-        
-    // 1. 保存ガイドの表示
     function showfoldersaveguide() {
         if (employees.length === 0) {
-            alert("登録されている社員データがありません。");
+            showerror("登録されている社員データがありません。");
             return;
         }
         foldersavemodal.classList.remove('hidden');
     }
 
-    // ガイド内のキャンセル処理
     document.getElementById('foldersavecancelbtn').addEventListener('click', () => {
         foldersavemodal.classList.add('hidden');
     });
 
-    // 2. 実際の保存・共有メニューの起動
     document.getElementById('foldersaveokbtn').addEventListener('click', () => {
         foldersavemodal.classList.add('hidden');
         executeexport();
@@ -457,8 +684,6 @@
 
     function executeexport() {
         const datastr = JSON.stringify(employees, null, 2);
-
-        // 現在の日時を取得して yyyy-mm-dd-hh-mm-ss_社員受付バックアップ.json を自動作成
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -466,11 +691,10 @@
         const h = String(now.getHours()).padStart(2, '0');
         const min = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
-        
         const today = `${y}-${m}-${d}_${h}-${min}-${s}`;
         const filename = `${today}_社員受付バックアップ.json`;
-
         const file = new File([datastr], filename, { type: "application/json" });
+
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
                 files: [file]
@@ -494,12 +718,13 @@
         link.download = filename;
         document.body.appendChild(link);
         link.click();
+        document.body.appendChild(link);
+        link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        url.revokeObjectURL(url);
         showtoast("バックアップファイルをダウンロードしました。");
     }
 
-    // ファイルから復元
     function importdata(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -521,77 +746,16 @@
                         showtoast("データを正常に復元しました。");
                     }
                 } else {
-                    alert("データ形式が正しくありません。正しいバックアップ用jsonファイルを選択してください。");
+                    showerror("データ形式が正しくありません。正しいバックアップ用JSONファイルを選択してください。");
                 }
             } catch (err) {
-                alert("ファイルの読み込みに失敗しました。");
+                showerror("ファイルの読み込みに失敗しました。");
             }
             event.target.value = "";
         };
         reader.readAsText(file);
     }
 
-    // ==========================================
-    // 📝 コピペバックアップ機能
-    // ==========================================
-    function opentextbackupmodal() {
-        const datastr = JSON.stringify(employees, null, 2);
-        backuptextarea.value = datastr;
-        textbackupmodal.classList.remove('hidden');
-    }
-
-    closebackupbtn.addEventListener('click', () => {
-        textbackupmodal.classList.add('hidden');
-        backuptextarea.value = "";
-    });
-
-    // コピー処理
-    function copybackuptext() {
-        backuptextarea.select();
-        backuptextarea.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(backuptextarea.value)
-            .then(() => {
-                showtoast("コピー完了！iPadの「メモ」等に貼り付けて保存してください。");
-            })
-            .catch(() => {
-                alert("コピーに失敗しました。枠内のテキストを手動で全選択してコピーしてください。");
-            });
-    }
-
-    // テキストから復元処理
-    function importbackuptext() {
-        const inputstr = backuptextarea.value.trim();
-        if (!inputstr) {
-            alert("エラー: 貼り付けられたテキストがありません。");
-            return;
-        }
-        try {
-            const importeddata = JSON.parse(inputstr);
-            if (Array.isArray(importeddata) && (importeddata.length === 0 || ('id' in importeddata[0] && 'name' in importeddata[0]))) {
-                if (confirm(`テキストから ${importeddata.length} 件のデータを復元しますか？\n(現在登録されているデータは上書きされます)`)) {
-                    employees = importeddata.map(emp => ({
-                        ...emp,
-                        lastborrowedtime: emp.lastborrowedtime || "",
-                        lastreturnedtime: emp.lastreturnedtime || "",
-                        dept: emp.dept || "未設定",
-                        adminid: emp.adminid || "未設定"
-                    }));
-                    savetostorage();
-                    textbackupmodal.classList.add('hidden');
-                    backuptextarea.value = "";
-                    renderadmin();
-                    rendermain("");
-                    showtoast("テキストからデータを正常に復元しました。");
-                }
-            } else {
-                alert("データ形式が正しくありません。正しいテキストを貼り付けてください。");
-            }
-        } catch (err) {
-            alert("解析に失敗しました。テキストが壊れているか、貼り付けが不完全な可能性があります。");
-        }
-    }
-
-    // 検索および自動トグル処理
     function executesearch(keyword) {
         const cleankeyword = keyword.trim().toLowerCase();
         const filtered = employees.filter(emp => {
@@ -611,56 +775,58 @@
             const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
             const nowtime = getformatteddatetime();
 
-            // 🟢 安全に表記揺れを吸収する新しい関数を使って判定
-            let showModal = false;
-            if (newstatus === 'borrowed' && !shouldExcludePopup(targetemp.dept)) {
-                showModal = true;
-            }
-
-            employees = employees.map(emp => {
-                if (emp.id === targetemp.id) {
-                    const updated = { ...emp, status: newstatus };
-                    if (newstatus === 'borrowed') {
-                        updated.lastborrowedtime = nowtime;
-                    } else {
-                        updated.lastreturnedtime = nowtime;
+            // 返却、もしくはポップアップ除外部署の貸出の場合は「即時確定」
+            if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
+                employees = employees.map(emp => {
+                    if (emp.id === targetemp.id) {
+                        const updated = { ...emp, status: newstatus };
+                        if (newstatus === 'borrowed') {
+                            updated.lastborrowedtime = nowtime;
+                        } else {
+                            updated.lastreturnedtime = nowtime;
+                        }
+                        return updated;
                     }
-                    return updated;
-                }
-                return emp;
-            });
-            savetostorage();
-
-            // 🟢 スプレッドシートに貸出・返却ログを即時送信
-            sendToSpreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-
-            const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
-            showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-            searchinput.value = "";
-            rendermain("");
-            
-            if (showModal) {
+                    return emp;
+                });
+                savetostorage();
+                sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+                
+                // 💡 履歴ログをリアルタイムに追加
+                addLog(targetemp.name, newstatus === 'borrowed' ? '貸出' : '返却');
+                
+                const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+                showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+                searchinput.value = "";
+                rendermain("");
+                focussearchinput();
+            } else {
+                // ポップアップ対象部署の「貸出」の時だけ確認画面を出す
+                pendingBorrowEmployee = targetemp;
                 borrowmessage.innerHTML = `
                     <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
                 `;
                 borrowmodal.classList.remove('hidden');
-            } else {
-                focussearchinput();
+                searchinput.value = ""; 
             }
             return;
         }
         rendermain(keyword);
     }
 
-    // メイン画面の描画
     function rendermain(filterkeyword = "") {
         employeelist.innerHTML = "";
         const keyword = filterkeyword.trim().toLowerCase();
-        const filtered = employees.filter(emp => {
+        let filtered = employees.filter(emp => {
             return emp.id.toLowerCase().includes(keyword) ||
                    emp.name.toLowerCase().includes(keyword) ||
                    emp.card.toLowerCase().includes(keyword);
         });
+
+        // 絞り込みフィルターがONなら「貸出中」だけをさらに抽出
+        if (showOnlyBorrowed) {
+            filtered = filtered.filter(emp => emp.status === 'borrowed');
+        }
 
         resultcount.textContent = `該当: ${filtered.length}件`;
 
@@ -679,21 +845,18 @@
             const actionbutton = isborrowed
                 ? `<button onclick="togglestatus('${emp.id}')" class="btn-status-toggle btn-status-return">返却する</button>`
                 : `<button onclick="togglestatus('${emp.id}')" class="btn-status-toggle btn-status-borrow">貸し出す</button>`;
-
             const btime = formatdisplaytime(emp.lastborrowedtime);
             const rtime = formatdisplaytime(emp.lastreturnedtime);
-
-            const deptStr = emp.dept || "未設定";
-            const adminidStr = emp.adminid || "未設定";
+            const deptstr = emp.dept || "未設定";
+            const adminidstr = emp.adminid || "未設定";
 
             carddiv.innerHTML = `
-                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptStr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidStr}</span></span><div class="employee-dates"><span>📥 最終貸出: <strong>${btime}</strong></span><span>📤 最終返却: <strong>${rtime}</strong></span></div><div>${statusbadge}</div></div><div>${actionbutton}</div>
+                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptstr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidstr}</span></span><div class="employee-dates"><span>📥 最終貸出: <strong>${btime}</strong></span><span>📤 最終返却: <strong>${rtime}</strong></span></div><div>${statusbadge}</div></div><div>${actionbutton}</div>
             `;
             employeelist.appendChild(carddiv);
         });
     }
 
-    // 管理画面の描画
     function renderadmin() {
         adminemployeelist.innerHTML = "";
         adminresultcount.textContent = `登録数: ${employees.length}件`;
@@ -706,58 +869,54 @@
         employees.forEach(emp => {
             const carddiv = document.createElement('div');
             carddiv.className = "employee-card";
-            const deptStr = emp.dept || "未設定";
-            const adminidStr = emp.adminid || "未設定";
+            const deptstr = emp.dept || "未設定";
+            const adminidstr = emp.adminid || "未設定";
+
             carddiv.innerHTML = `
-                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptStr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidStr}</span></span></div><div><button onclick="deleteemployee('${emp.id}')" class="btn-delete-card">🗑️ 削除</button></div>
+                <div class="employee-info"><div class="employee-meta"><span class="employee-id-badge">社員番号：${emp.id}【${deptstr}】</span><span class="employee-name">${emp.name}</span></div><span class="employee-card-no">カード番号： <span>${emp.card}</span> | 管理番号： <span>${adminidstr}</span></span></div><div style="display: flex; gap: 8px;"><button onclick="openeditemployee('${emp.id}')" class="btn btn-gray-light" style="padding: 6px 12px; font-size: 11px;">✏️ 編集</button><button onclick="deleteemployee('${emp.id}')" class="btn-delete-card">🗑️ 削除</button></div>
             `;
             adminemployeelist.appendChild(carddiv);
         });
     }
 
-    // 手動でのステータス変更
     function togglestatus(id) {
-        const nowtime = getformatteddatetime();
         const targetemp = employees.find(emp => emp.id === id);
         if (!targetemp) return;
-
         const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
 
-        // 🟢 安全に表記揺れを吸収する新しい関数を使って判定
-        let showModal = false;
-        if (newstatus === 'borrowed' && !shouldExcludePopup(targetemp.dept)) {
-            showModal = true;
-        }
-
-        employees = employees.map(emp => {
-            if (emp.id === id) {
-                const updated = { ...emp, status: newstatus };
-                if (newstatus === 'borrowed') {
-                    updated.lastborrowedtime = nowtime;
-                } else {
-                    updated.lastreturnedtime = nowtime;
+        if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
+            const nowtime = getformatteddatetime();
+            employees = employees.map(emp => {
+                if (emp.id === id) {
+                    const updated = { ...emp, status: newstatus };
+                    if (newstatus === 'borrowed') {
+                        updated.lastborrowedtime = nowtime;
+                    } else {
+                        updated.lastreturnedtime = nowtime;
+                    }
+                    return updated;
                 }
-                return updated;
-            }
-            return emp;
-        });
-        savetostorage();
-        rendermain(searchinput.value);
+                return emp;
+            });
+            savetostorage();
+            rendermain(searchinput.value);
+            sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+            
+            // 💡 履歴ログをリアルタイムに追加
+            addLog(targetemp.name, newstatus === 'borrowed' ? '貸出' : '返却');
 
-        // 🟢 スプレッドシートに貸出・返却ログを即時送信
-        sendToSpreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-        
-        if (showModal) {
+            const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+            showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+            focussearchinput();
+        } else {
+            pendingBorrowEmployee = targetemp;
             borrowmessage.innerHTML = `
                 <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
             `;
             borrowmodal.classList.remove('hidden');
-        } else {
-            focussearchinput();
         }
     }
 
-    // 新規登録処理
     registerform.addEventListener('submit', function(e) {
         e.preventDefault();
         const id = regid.value.trim();
@@ -767,11 +926,11 @@
         const adminid = document.getElementById('regadminid').value.trim();
 
         if (employees.some(emp => emp.id === id)) {
-            alert(`エラー: 社員番号 [${id}] は既に登録されています。`);
+            showerror(`社員番号 [${id}] は既に登録されています。`);
             return;
         }
         if (employees.some(emp => emp.card === card)) {
-            alert(`エラー: カード番号 [${card}] は既に登録されています。`);
+            showerror(`カード番号 [${card}] は既に登録されています。`);
             return;
         }
 
@@ -783,7 +942,6 @@
         showtoast(`「${name}」さんを登録しました。`);
     });
 
-    // 削除処理（自作ポップアップ）
     function deleteemployee(id) {
         const emp = employees.find(e => e.id === id);
         if (!emp) return;
@@ -792,6 +950,89 @@
         confirmmodal.classList.remove('hidden');
     }
 
+    window.openeditemployee = function(id) {
+        const emp = employees.find(e => e.id === id);
+        if (!emp) return;
+
+        editoldid.value = emp.id;
+        editid.value = emp.id;
+        editname.value = emp.name;
+        editcard.value = emp.card;
+        editdept.value = emp.dept || "DC運用";
+        editadminid.value = emp.adminid || "";
+
+        editmodal.classList.remove('hidden');
+    };
+
+    editcancelbtn.addEventListener('click', () => {
+        editmodal.classList.add('hidden');
+    });
+
+    editform.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const oldId = editoldid.value;
+        const newId = editid.value.trim();
+        const newName = editname.value.trim();
+        const newCard = editcard.value.trim();
+        const newDept = editdept.value;
+        const newAdminId = editadminid.value.trim();
+
+        if (employees.some(emp => emp.id === newId && emp.id !== oldId)) {
+            showerror(`社員番号 [${newId}] は既に別の社員で登録されています。`);
+            return;
+        }
+        if (employees.some(emp => emp.card === newCard && emp.id !== oldId)) {
+            showerror(`カード番号 [${newCard}] は既に別の社員で登録されています。`);
+            return;
+        }
+
+        employees = employees.map(emp => {
+            if (emp.id === oldId) {
+                return {
+                    ...emp,
+                    id: newId,
+                    name: newName,
+                    card: newCard,
+                    dept: newDept,
+                    adminid: newAdminId
+                };
+            }
+            return emp;
+        });
+
+        savetostorage();
+        renderadmin();
+        rendermain(searchinput.value);
+        editmodal.classList.add('hidden');
+        showtoast(`「${newName}」さんの情報を更新しました！`);
+    });
+
+    // =======================================================
+    // 各種イベントリスナー
+    // =======================================================
+    
+    // 貸出中クイックフィルターのボタン動作
+    filterBorrowedBtn.addEventListener('click', () => {
+        showOnlyBorrowed = !showOnlyBorrowed;
+        
+        if (showOnlyBorrowed) {
+            filterBorrowedBtn.textContent = "👥 全員を表示する";
+            filterBorrowedBtn.style.backgroundColor = "#4b5563";
+        } else {
+            filterBorrowedBtn.textContent = "🔴 貸出中メンバーだけを表示";
+            filterBorrowedBtn.style.backgroundColor = "#16a34a";
+        }
+        rendermain(searchinput.value);
+    });
+
+    // 自作エラー確認ポップアップの「OK」ボタン処理
+    errorokbtn.addEventListener('click', () => {
+        errormodal.classList.add('hidden');
+        if (editmodal.classList.contains('hidden')) {
+            focussearchinput();
+        }
+    });
+
     document.getElementById('confirmcancelbtn').addEventListener('click', () => {
         confirmmodal.classList.add('hidden');
         employeetodeleteid = null;
@@ -799,24 +1040,53 @@
 
     document.getElementById('confirmokbtn').addEventListener('click', () => {
         if (employeetodeleteid) {
+            const deletedEmp = employees.find(e => e.id === employeetodeleteid);
             employees = employees.filter(e => e.id !== employeetodeleteid);
             savetostorage();
             renderadmin();
-            showtoast("登録データを削除しました。", false);
+            rendermain(searchinput.value);
+            if (deletedEmp) {
+                showtoast(`「${deletedEmp.name}」さんのデータを削除しました。`, false);
+            }
         }
         confirmmodal.classList.add('hidden');
         employeetodeleteid = null;
     });
 
-    // 貸出モーダル「OK」ボタン
+    // 貸出確定OK処理
     borrowokbtn.addEventListener('click', () => {
+        if (pendingBorrowEmployee) {
+            const targetemp = pendingBorrowEmployee;
+            const nowtime = getformatteddatetime();
+
+            employees = employees.map(emp => {
+                if (emp.id === targetemp.id) {
+                    return { ...emp, status: 'borrowed', lastborrowedtime: nowtime };
+                }
+                return emp;
+            });
+            savetostorage();
+            rendermain(searchinput.value);
+            sendtospreadsheet(targetemp, '貸出');
+            
+            // 💡 履歴ログをリアルタイムに追加
+            addLog(targetemp.name, '貸出');
+            
+            showtoast(`「${targetemp.name}」さんのステータスを 🔴 貸出中 に変更しました`);
+            pendingBorrowEmployee = null;
+        }
         borrowmodal.classList.add('hidden');
         focussearchinput();
     });
 
-    // 検索イベント
+    borrowcancelbtn.addEventListener('click', () => {
+        borrowmodal.classList.add('hidden');
+        pendingBorrowEmployee = null;
+        focussearchinput();
+    });
+
     searchinput.addEventListener('keypress', (e) => {
-        if (e.key === 'enter' || e.key === 'Enter') {
+        if (e.key === 'Enter' || e.key === 'enter') {
             e.preventDefault();
             executesearch(searchinput.value);
         }
@@ -833,7 +1103,6 @@
         focussearchinput();
     });
 
-    // ipad自動入力対応
     document.addEventListener('keydown', (e) => {
         if (!mainview.classList.contains('hidden')) {
             if (document.activeElement !== searchinput && e.key.length === 1) {
@@ -857,6 +1126,8 @@
     });
 
     // 起動処理
+    updateSummary(); // サマリー数の初期計算
+    renderLogs();    // 💡 受付履歴ログの初期描画
     rendermain("");
     focussearchinput();
 </script></body></html>
