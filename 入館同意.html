@@ -10,33 +10,26 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Meiryo", "Microsoft YaHei", sans-serif;
-            -webkit-tap-highlight-color: transparent; /* タップ時の青い枠線を削除 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #d9d9d9;
+            background-color: #eef2f5;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             width: 100vw;
-            padding: 24px;
-            overflow: hidden; /* 不要なスクロールを防止 */
+            overflow: hidden;
         }
 
-        /* iPad向け全体枠 */
+        /* 画面コンテナ（枠線・シャドウを排除） */
         .window-container {
             width: 100%;
-            max-width: 1024px;
             height: 100%;
-            max-height: 900px;
-            background-color: #f2f2f2;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            border: 1px solid #cccccc;
             display: flex;
             flex-direction: column;
+            background-color: #eef2f5;
         }
 
         /* 画面の切り替え制御用 */
@@ -54,7 +47,7 @@
         .header-bar {
             background-color: #0b6cb8;
             color: #ffffff;
-            padding: 16px 28px;
+            padding: 18px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -62,7 +55,7 @@
         }
 
         .header-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
         }
 
@@ -74,9 +67,9 @@
 
         .lang-btn {
             background-color: rgba(255, 255, 255, 0.2);
-            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 6px;
-            padding: 8px 20px;
+            padding: 8px 22px;
             color: #ffffff;
             font-size: 16px;
             font-weight: bold;
@@ -85,21 +78,16 @@
             user-select: none;
         }
 
-        .lang-btn:hover {
-            background-color: rgba(255, 255, 255, 0.35);
-        }
-
         /* 選択中の言語ボタンのスタイル */
         .lang-btn.active {
             background-color: #ffffff;
             color: #0b6cb8;
             border-color: #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
         /* メインコンテンツエリア */
         .main-content {
-            padding: 24px;
+            padding: 30px 40px;
             display: flex;
             flex-direction: column;
             flex: 1;
@@ -107,24 +95,20 @@
             overflow: hidden;
         }
 
-        /* 白いテキストボックス枠 */
+        /* 遵守事項コンテンツ領域（白枠や影を全削除） */
         .terms-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 30px 36px;
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             margin-bottom: 24px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 0 10px;
         }
 
         .intro-text {
             color: #d93025;
-            font-size: 18px;
-            margin-bottom: 24px;
+            font-size: 20px;
+            margin-bottom: 28px;
             font-weight: bold;
             line-height: 1.5;
         }
@@ -134,11 +118,11 @@
         }
 
         .terms-list li {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
             color: #111111;
-            line-height: 1.6;
-            margin-bottom: 14px;
+            line-height: 1.65;
+            margin-bottom: 16px;
             letter-spacing: -0.2px;
         }
 
@@ -146,7 +130,7 @@
             margin-bottom: 0;
         }
 
-        /* ボタンエリア（同意するボタン） */
+        /* ボタンエリア */
         .button-area {
             display: flex;
             width: 100%;
@@ -155,10 +139,10 @@
 
         .btn {
             width: 100%;
-            height: 100px;
+            height: 105px;
             border: none;
             border-radius: 14px;
-            font-size: 42px;
+            font-size: 44px;
             font-weight: bold;
             color: #ffffff;
             cursor: pointer;
@@ -166,7 +150,7 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.15s ease, transform 0.05s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(11, 108, 184, 0.25);
         }
 
         .btn:active {
@@ -177,15 +161,10 @@
             background-color: #2b5cb2;
         }
 
-        .btn-accept:hover {
-            opacity: 0.95;
-        }
-
         /* 完了画面 */
         .completion-content {
             padding: 40px;
             text-align: center;
-            background-color: #ffffff;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -195,7 +174,7 @@
         }
 
         .completion-message {
-            font-size: 36px;
+            font-size: 38px;
             font-weight: bold;
             color: #1a252f;
             line-height: 1.8;
@@ -207,11 +186,10 @@
             color: #ffffff;
             font-size: 22px;
             font-weight: bold;
-            padding: 16px 40px;
+            padding: 18px 45px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         .btn-reset:active {
