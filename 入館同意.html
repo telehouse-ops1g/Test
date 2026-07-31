@@ -2,14 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>遵守事項への同意願い / Agreement / 遵守事项确认</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", "Microsoft YaHei", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Meiryo", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent; /* タップ時の青い枠線を削除 */
         }
 
         body {
@@ -17,58 +18,67 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100vh;
+            width: 100vw;
+            padding: 24px;
+            overflow: hidden; /* 不要なスクロールを防止 */
         }
 
-        /* 共通画面コンテナ */
+        /* iPad向け全体枠 */
         .window-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1024px;
+            height: 100%;
+            max-height: 900px;
             background-color: #f2f2f2;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            border: 1px solid #ccc;
+            border: 1px solid #cccccc;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 画面の切り替え制御用 */
         .screen {
             display: none;
+            height: 100%;
+            flex-direction: column;
         }
 
         .screen.active {
-            display: block;
+            display: flex;
         }
 
         /* 青色ヘッダーバー */
         .header-bar {
             background-color: #0b6cb8;
             color: #ffffff;
-            padding: 10px 20px;
+            padding: 16px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .header-title {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: bold;
         }
 
         /* 言語選択ボタンエリア */
         .lang-button-group {
             display: flex;
-            gap: 8px;
+            gap: 12px;
         }
 
         .lang-btn {
             background-color: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 4px;
-            padding: 5px 12px;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            padding: 8px 20px;
             color: #ffffff;
-            font-size: 13px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -84,28 +94,38 @@
             background-color: #ffffff;
             color: #0b6cb8;
             border-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
         /* メインコンテンツエリア */
         .main-content {
-            padding: 15px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            justify-content: space-between;
+            overflow: hidden;
         }
 
         /* 白いテキストボックス枠 */
         .terms-card {
-            background-color: #f7f7f7;
+            background-color: #ffffff;
             border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 20px 25px;
-            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 30px 36px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-bottom: 24px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .intro-text {
             color: #d93025;
-            font-size: 14px;
-            margin-bottom: 20px;
-            font-weight: 500;
+            font-size: 18px;
+            margin-bottom: 24px;
+            font-weight: bold;
             line-height: 1.5;
         }
 
@@ -114,30 +134,31 @@
         }
 
         .terms-list li {
-            font-size: 17px;
+            font-size: 20px;
             font-weight: bold;
-            color: #000000;
-            line-height: 1.5;
-            margin-bottom: 10px;
-            letter-spacing: -0.3px;
+            color: #111111;
+            line-height: 1.6;
+            margin-bottom: 14px;
+            letter-spacing: -0.2px;
         }
 
         .terms-list li:last-child {
             margin-bottom: 0;
         }
 
-        /* ボタンエリア（同意するボタンを横幅いっぱいに拡大） */
+        /* ボタンエリア（同意するボタン） */
         .button-area {
             display: flex;
             width: 100%;
+            flex-shrink: 0;
         }
 
         .btn {
             width: 100%;
             height: 100px;
             border: none;
-            border-radius: 12px;
-            font-size: 38px;
+            border-radius: 14px;
+            font-size: 42px;
             font-weight: bold;
             color: #ffffff;
             cursor: pointer;
@@ -145,11 +166,11 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.15s ease, transform 0.05s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
         .btn:active {
-            transform: scale(0.99);
+            transform: scale(0.98);
         }
 
         .btn-accept {
@@ -157,52 +178,54 @@
         }
 
         .btn-accept:hover {
-            opacity: 0.9;
+            opacity: 0.95;
         }
 
         /* 完了画面 */
         .completion-content {
-            padding: 60px 30px;
+            padding: 40px;
             text-align: center;
             background-color: #ffffff;
-            min-height: 400px;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            flex: 1;
         }
 
         .completion-message {
-            font-size: 26px;
+            font-size: 36px;
             font-weight: bold;
             color: #1a252f;
             line-height: 1.8;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
 
         .btn-reset {
             background-color: #6c757d;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
-            padding: 12px 30px;
+            padding: 16px 40px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        .btn-reset:hover {
-            opacity: 0.9;
+        .btn-reset:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body>
 
     <div class="window-container">
-        <!-- 青色ヘッダー -->
+        <!-- 青色ヘッダーバー -->
         <div class="header-bar">
             <div class="header-title" id="headerTitle">遵守事項への同意願い</div>
-            <!-- 各言語への切り替えボタン（国旗なしテキスト表示） -->
+            <!-- 言語切り替えボタン -->
             <div class="lang-button-group">
                 <button type="button" class="lang-btn active" id="btn-lang-ja" onclick="setLanguage('ja')">日本語</button>
                 <button type="button" class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">English</button>
@@ -304,46 +327,37 @@
 
         let currentLang = 'ja';
 
-        // 特定の言語をセットする関数
         function setLanguage(lang) {
             currentLang = lang;
 
-            // ボタンのアクティブ状態の更新
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btn-lang-' + lang).classList.add('active');
 
-            // 画面の表示テキスト更新
             updateLanguageUI();
         }
 
-        // 画面上のテキストを更新
         function updateLanguageUI() {
             const data = translations[currentLang];
 
-            // ヘッダータイトルの更新
             const isCompleted = document.getElementById('completionScreen').classList.contains('active');
             document.getElementById('headerTitle').textContent = isCompleted ? data.headerTitleDone : data.headerTitle;
 
-            // 本文・箇条書きの更新
             document.getElementById('introText').textContent = data.intro;
             for (let i = 0; i < 7; i++) {
                 document.getElementById('rule' + (i + 1)).textContent = data.rules[i];
             }
 
-            // ボタン類・メッセージの更新
             document.getElementById('btnAccept').textContent = data.btnAccept;
             document.getElementById('completionMsg').innerHTML = data.completionMsg;
             document.getElementById('btnReset').textContent = data.btnReset;
         }
 
-        // 「同意する」ボタンクリック時
         function onAccept() {
             document.getElementById('agreementScreen').classList.remove('active');
             document.getElementById('completionScreen').classList.add('active');
             document.getElementById('headerTitle').textContent = translations[currentLang].headerTitleDone;
         }
 
-        // 初期画面に戻るボタンクリック時
         function resetForm() {
             document.getElementById('completionScreen').classList.remove('active');
             document.getElementById('agreementScreen').classList.add('active');
