@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遵守事項への同意願い / Agreement / 遵守事项确认</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #d9d9d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 共通画面コンテナ */
+        .window-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #f2f2f2;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid #ccc;
+        }
+
+        /* 画面の切り替え制御用 */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* 青色ヘッダーバー */
+        .header-bar {
+            background-color: #0b6cb8;
+            color: #ffffff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 言語選択ボタンエリア */
+        .lang-button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
+            padding: 5px 12px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .lang-btn:hover {
+            background-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* 選択中の言語ボタンのスタイル */
+        .lang-btn.active {
+            background-color: #ffffff;
+            color: #0b6cb8;
+            border-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* メインコンテンツエリア */
+        .main-content {
+            padding: 15px;
+        }
+
+        /* 白いテキストボックス枠 */
+        .terms-card {
+            background-color: #f7f7f7;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+        }
+
+        .intro-text {
+            color: #d93025;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .terms-list {
+            list-style: none;
+        }
+
+        .terms-list li {
+            font-size: 17px;
+            font-weight: bold;
+            color: #000000;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .terms-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ボタンエリア（同意するボタンを横幅いっぱいに拡大） */
+        .button-area {
+            display: flex;
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            height: 100px;
+            border: none;
+            border-radius: 12px;
+            font-size: 38px;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.15s ease, transform 0.05s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: scale(0.99);
+        }
+
+        .btn-accept {
+            background-color: #2b5cb2;
+        }
+
+        .btn-accept:hover {
+            opacity: 0.9;
+        }
+
+        /* 完了画面 */
+        .completion-content {
+            padding: 60px 30px;
+            text-align: center;
+            background-color: #ffffff;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .completion-message {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1a252f;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-reset:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window-container">
+        <!-- 青色ヘッダー -->
+        <div class="header-bar">
+            <div class="header-title" id="headerTitle">遵守事項への同意願い</div>
+            <!-- 各言語への切り替えボタン（国旗なしテキスト表示） -->
+            <div class="lang-button-group">
+                <button type="button" class="lang-btn active" id="btn-lang-ja" onclick="setLanguage('ja')">日本語</button>
+                <button type="button" class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">English</button>
+                <button type="button" class="lang-btn" id="btn-lang-cn" onclick="setLanguage('cn')">中文</button>
+            </div>
+        </div>
+
+        <!-- 1. 同意確認画面 -->
+        <div id="agreementScreen" class="screen active">
+            <div class="main-content">
+                <div class="terms-card">
+                    <p class="intro-text" id="introText">
+                        情報セキュリティ管理(ISMS)のため、以下遵守事項をお読みいただきご承認をお願いいたします。
+                    </p>
+                    <ol class="terms-list">
+                        <li id="rule1">1. 許可されたエリア以外への立入りを禁止します。</li>
+                        <li id="rule2">2. 貸与されたICカードおよび鍵は常時携帯し、適切に管理してください。</li>
+                        <li id="rule3">3. お客様設備以外の機器には一切触れないでください。</li>
+                        <li id="rule4">4. サーバー室への飲食物および危険物の持ち込みを禁止します。</li>
+                        <li id="rule5">5. 館内では警備員およびKDDIの指示に従ってください。</li>
+                        <li id="rule6">6. 契約書および運用要領に定められた事項を遵守してください。</li>
+                        <li id="rule7">7. 館内は監視カメラにより記録されています</li>
+                    </ol>
+                </div>
+
+                <div class="button-area">
+                    <button type="button" class="btn btn-accept" id="btnAccept" onclick="onAccept()">同意する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 完了画面 -->
+        <div id="completionScreen" class="screen">
+            <div class="completion-content">
+                <p class="completion-message" id="completionMsg">
+                    同意いただきありがとうございます。<br>
+                    タブレットを受付に返却してください。
+                </p>
+                <button type="button" class="btn-reset" id="btnReset" onclick="resetForm()">最初の画面に戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 翻訳データ
+        const translations = {
+            ja: {
+                headerTitle: "遵守事項への同意願い",
+                headerTitleDone: "手続き完了",
+                intro: "情報セキュリティ管理(ISMS)のため、以下遵守事項をお読みいただきご承認をお願いいたします。",
+                rules: [
+                    "1. 許可されたエリア以外への立入りを禁止します。",
+                    "2. 貸与されたICカードおよび鍵は常時携帯し、適切に管理してください。",
+                    "3. お客様設備以外の機器には一切触れないでください。",
+                    "4. サーバー室への飲食物および危険物の持ち込みを禁止します。",
+                    "5. 館内では警備員およびKDDIの指示に従ってください。",
+                    "6. 契約書および運用要領に定められた事項を遵守してください。",
+                    "7. 館内は監視カメラにより記録されています"
+                ],
+                btnAccept: "同意する",
+                completionMsg: "同意いただきありがとうございます。<br>タブレットを受付に返却してください。",
+                btnReset: "最初の画面に戻る"
+            },
+            en: {
+                headerTitle: "Compliance Agreement Request",
+                headerTitleDone: "Completed",
+                intro: "Please read and acknowledge the following rules for information security management (ISMS).",
+                rules: [
+                    "1. Access is restricted to authorized areas only. Entry into unauthorized areas is strictly prohibited.",
+                    "2. ID cards and issued keys must be worn or carried at all times and properly managed.",
+                    "3. Do not touch or operate any equipment other than your own.",
+                    "4. Bringing food, drinks, or hazardous materials into the server room is strictly prohibited.",
+                    "5. You must follow all instructions given by security personnel and KDDI staff.",
+                    "6. All contractual terms and operational procedures must be complied with at all times.",
+                    "7. This facility is monitored and recorded by security cameras."
+                ],
+                btnAccept: "Agree",
+                completionMsg: "Thank you for your agreement.<br>Please return the tablet to the reception.",
+                btnReset: "Return to Home"
+            },
+            cn: {
+                headerTitle: "遵守事项确认",
+                headerTitleDone: "完成",
+                intro: "为符合信息安全管理体系（ISMS）的要求，请阅读并确认遵守以下事项。",
+                rules: [
+                    "1. 严禁进入未经许可的区域。",
+                    "2. 请随身携带并妥善保管领用的IC门禁卡及钥匙。",
+                    "3. 除客户设备外，严禁触碰任何其他设备。",
+                    "4. 严禁将食品，饮料及危险物品带入机房内。",
+                    "5. 在本设施内，请遵从安保人员及KDDI工作人员的指示。",
+                    "6. 请遵守合同及运维规程中规定的各项要求。",
+                    "7. 本设施内设有闭路电视监控系统，并录像存档。"
+                ],
+                btnAccept: "同意",
+                completionMsg: "感谢您的同意。<br>请将平板电脑交还至前台。",
+                btnReset: "返回初始画面"
+            }
+        };
+
+        let currentLang = 'ja';
+
+        // 特定の言語をセットする関数
+        function setLanguage(lang) {
+            currentLang = lang;
+
+            // ボタンのアクティブ状態の更新
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-lang-' + lang).classList.add('active');
+
+            // 画面の表示テキスト更新
+            updateLanguageUI();
+        }
+
+        // 画面上のテキストを更新
+        function updateLanguageUI() {
+            const data = translations[currentLang];
+
+            // ヘッダータイトルの更新
+            const isCompleted = document.getElementById('completionScreen').classList.contains('active');
+            document.getElementById('headerTitle').textContent = isCompleted ? data.headerTitleDone : data.headerTitle;
+
+            // 本文・箇条書きの更新
+            document.getElementById('introText').textContent = data.intro;
+            for (let i = 0; i < 7; i++) {
+                document.getElementById('rule' + (i + 1)).textContent = data.rules[i];
+            }
+
+            // ボタン類・メッセージの更新
+            document.getElementById('btnAccept').textContent = data.btnAccept;
+            document.getElementById('completionMsg').innerHTML = data.completionMsg;
+            document.getElementById('btnReset').textContent = data.btnReset;
+        }
+
+        // 「同意する」ボタンクリック時
+        function onAccept() {
+            document.getElementById('agreementScreen').classList.remove('active');
+            document.getElementById('completionScreen').classList.add('active');
+            document.getElementById('headerTitle').textContent = translations[currentLang].headerTitleDone;
+        }
+
+        // 初期画面に戻るボタンクリック時
+        function resetForm() {
+            document.getElementById('completionScreen').classList.remove('active');
+            document.getElementById('agreementScreen').classList.add('active');
+            document.getElementById('headerTitle').textContent = translations[currentLang].headerTitle;
+        }
+    </script>
+
+</body>
+</html>
