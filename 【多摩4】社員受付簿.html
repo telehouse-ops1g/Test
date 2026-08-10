@@ -408,8 +408,8 @@
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
                         <div class="form-group">
                             <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <!-- ★修正箇所: autofocusを削除し、日本語キーボードが開くよう設定 -->
-                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
+                            <!-- ★修正：社員管理画面の入力欄(regid, regname等)と完全同一属性・スタイルに統一 -->
+                            <input type="text" id="searchinput" class="input-text" placeholder="例: スキャンするか、タップして入力...">
                         </div>
                         <div class="checkbox-container">
                             <label class="checkbox-label">
@@ -675,7 +675,7 @@
         const editcancelbtn = document.getElementById('editcancelbtn');
 
         const errormodal = document.getElementById('errormodal');
-        const errormessage = document.innerHTML; // ※念のため変更せず維持
+        const errormessage = document.getElementById('errormessage');
         const errorokbtn = document.getElementById('errorokbtn');
 
         let lasttoggletime = 0;
@@ -788,9 +788,8 @@
             return timestr;
         }
 
-        // ★修正箇所：自動フォーカスによるIME（日本語入力）キャンセルの防止
+        // ★修正：社員管理画面に合わせて強制フォーカスを行わないよう変更
         function focussearchinput() {
-            // スキャナからの打鍵時や直接選択時にスムーズに入力が入るよう調整
         }
 
         function switchview(viewname) {
