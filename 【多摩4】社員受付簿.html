@@ -410,7 +410,7 @@
                         <form id="mainform" onsubmit="return false;">
                             <!-- ① スキャン用入力欄（QRコードあり時のみ表示） -->
                             <div id="scaninputcontainer" class="form-group">
-                                <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
+                                <label>QRコードのスキャンのみ</label>
                                 <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
                             </div>
 
@@ -642,7 +642,7 @@
         const gas_web_app_url = "https://script.google.com/macros/s/AKfycbxbSWdS2gAZZTa3AxadkMCqGEviqWSIiJ8RnBxTDPo5oax8NKh7IJxDch1JEHcNRzDW/exec";
 
         const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員"];
-        const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
+        const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(AltX)"];
 
         let employees = JSON.parse(localStorage.getItem(storage_key)) || [
             { id: "P999999", name: "多摩 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
