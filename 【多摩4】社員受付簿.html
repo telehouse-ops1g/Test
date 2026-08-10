@@ -701,18 +701,21 @@
 
         let lasttoggletime = 0;
 
-        // ★「QRコードを持っているか？」のチェック有無で、表示する入力欄を制御
-        autotogglecheck.addEventListener('change', updateInputVisibility);
+        // ★「QRコードを持っているか？」の変更時に自動フォーカスを連動
+        autotogglecheck.addEventListener('change', () => {
+            updateInputVisibility();
+            if (autotogglecheck.checked) {
+                focussearchinput();
+            }
+        });
 
         function updateInputVisibility() {
             if (autotogglecheck.checked) {
-                // QRあり：スキャン用入力欄のみ表示、手入力欄は隠す
                 scaninputcontainer.classList.remove('hidden');
                 manualinputs.classList.add('hidden');
                 manualnamesearch.value = "";
                 manualidsearch.value = "";
             } else {
-                // QRなし：スキャン用入力欄を隠し、手入力欄（氏名・社員番号）を表示
                 scaninputcontainer.classList.add('hidden');
                 manualinputs.classList.remove('hidden');
                 searchinput.value = "";
@@ -827,9 +830,14 @@
             return timestr;
         }
 
+        // ★自動フォーカス関数：チェックが入っている時だけスキャン枠へフォーカスを入れる
         function focussearchinput() {
+            if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
+                searchinput.focus();
+            }
         }
 
+        // ★画面切替時（管理画面から復帰時）は自動的にチェックをONにしてフォーカス
         function switchview(viewname) {
             if (viewname === 'admin') {
                 mainview.classList.add('hidden');
@@ -838,7 +846,10 @@
             } else {
                 adminview.classList.add('hidden');
                 mainview.classList.remove('hidden');
+                autotogglecheck.checked = true; // 戻った時に自動チェックON
+                updateInputVisibility();
                 rendermain("");
+                focussearchinput(); // スキャン待機状態にフォーカス
             }
         }
 
@@ -920,11 +931,13 @@
 
         document.getElementById('foldersavecancelbtn').addEventListener('click', () => {
             foldersavemodal.classList.add('hidden');
+            focussearchinput();
         });
 
         document.getElementById('foldersaveokbtn').addEventListener('click', () => {
             foldersavemodal.classList.add('hidden');
             executeexport();
+            focussearchinput();
         });
 
         function executeexport() {
@@ -1051,6 +1064,7 @@
                     showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
                     clearInputs();
                     rendermain("");
+                    focussearchinput();
                 } else {
                     pendingBorrowEmployee = targetemp;
                     borrowmessage.innerHTML = `
@@ -1162,6 +1176,7 @@
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                 showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+                focussearchinput();
             } else {
                 pendingBorrowEmployee = targetemp;
                 borrowmessage.innerHTML = `
@@ -1220,6 +1235,7 @@
 
         editcancelbtn.addEventListener('click', () => {
             editmodal.classList.add('hidden');
+            focussearchinput();
         });
 
         editform.addEventListener('submit', function(e) {
@@ -1259,6 +1275,7 @@
             rendermain(getSearchKeyword());
             editmodal.classList.add('hidden');
             showtoast(`「${newName}」さんの情報を更新しました！`);
+            focussearchinput();
         });
 
         // =======================================================
@@ -1276,15 +1293,18 @@
                 filterBorrowedBtn.style.backgroundColor = "#16a34a";
             }
             rendermain(getSearchKeyword());
+            focussearchinput();
         });
 
         errorokbtn.addEventListener('click', () => {
             errormodal.classList.add('hidden');
+            focussearchinput();
         });
 
         document.getElementById('confirmcancelbtn').addEventListener('click', () => {
             confirmmodal.classList.add('hidden');
             employeetodeleteid = null;
+            focussearchinput();
         });
 
         document.getElementById('confirmokbtn').addEventListener('click', () => {
@@ -1300,6 +1320,7 @@
             }
             confirmmodal.classList.add('hidden');
             employeetodeleteid = null;
+            focussearchinput();
         });
 
         borrowokbtn.addEventListener('click', () => {
@@ -1323,11 +1344,13 @@
                 pendingBorrowEmployee = null;
             }
             borrowmodal.classList.add('hidden');
+            focussearchinput();
         });
 
         borrowcancelbtn.addEventListener('click', () => {
             borrowmodal.classList.add('hidden');
             pendingBorrowEmployee = null;
+            focussearchinput();
         });
 
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
@@ -1341,29 +1364,35 @@
 
         searchbtn.addEventListener('click', () => {
             executesearch();
+            focussearchinput();
         });
 
         clearbtn.addEventListener('click', () => {
             clearInputs();
             rendermain("");
+            focussearchinput();
         });
 
+        // ★スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
         document.addEventListener('keydown', (e) => {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
-                if (document.activeElement !== searchinput && document.activeElement !== manualnamesearch && document.activeElement !== manualidsearch && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    if (autotogglecheck.checked) {
-                        searchinput.focus();
-                        searchinput.value += e.key;
-                        e.preventDefault();
-                    }
+            if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
+                if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    searchinput.focus();
+                    searchinput.value += e.key;
+                    e.preventDefault();
                 }
             }
         });
 
+        // 初期化処理
         updateSummary();
         renderLogs();
         rendermain("");
+        
+        // ★起動時および管理画面からの復帰時に自動的にチェックON＆フォーカス
+        autotogglecheck.checked = true;
         updateInputVisibility();
+        focussearchinput();
     </script>
 </body>
 </html>
