@@ -408,7 +408,7 @@
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
                         <div class="form-group">
                             <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <!-- ★修正：社員管理画面の入力欄(regid, regname等)と完全同一属性・スタイルに統一 -->
+                            <!-- ★管理画面の「管理番号」<input type="text" id="regadminid" class="input-text" placeholder="..."> と完全同一形式に修正 -->
                             <input type="text" id="searchinput" class="input-text" placeholder="例: スキャンするか、タップして入力...">
                         </div>
                         <div class="checkbox-container">
@@ -788,7 +788,7 @@
             return timestr;
         }
 
-        // ★修正：社員管理画面に合わせて強制フォーカスを行わないよう変更
+        // 管理画面の各フォームと同じ挙動（自動フォーカスによる制御を行わない）に修正
         function focussearchinput() {
         }
 
@@ -1290,15 +1290,7 @@
             rendermain("");
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
-                if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    searchinput.focus();
-                    searchinput.value += e.key;
-                    e.preventDefault();
-                }
-            }
-        });
+        // ★スキャナのキー横取り（自動フォーカス）イベントを完全に削除しました
 
         updateSummary();
         renderLogs();
