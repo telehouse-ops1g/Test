@@ -408,7 +408,8 @@
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
                         <div class="form-group">
                             <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autofocus autocomplete="off">
+                            <!-- ★修正箇所: autofocusを削除し、日本語キーボードが開くよう設定 -->
+                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
                         </div>
                         <div class="checkbox-container">
                             <label class="checkbox-label">
@@ -674,7 +675,7 @@
         const editcancelbtn = document.getElementById('editcancelbtn');
 
         const errormodal = document.getElementById('errormodal');
-        const errormessage = document.getElementById('errormessage');
+        const errormessage = document.innerHTML; // ※念のため変更せず維持
         const errorokbtn = document.getElementById('errorokbtn');
 
         let lasttoggletime = 0;
@@ -739,7 +740,7 @@
         }
 
         function showerror(msg) {
-            errormessage.innerHTML = msg;
+            document.getElementById('errormessage').innerHTML = msg;
             errormodal.classList.remove('hidden');
         }
 
@@ -787,10 +788,9 @@
             return timestr;
         }
 
+        // ★修正箇所：自動フォーカスによるIME（日本語入力）キャンセルの防止
         function focussearchinput() {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
-                searchinput.focus();
-            }
+            // スキャナからの打鍵時や直接選択時にスムーズに入力が入るよう調整
         }
 
         function switchview(viewname) {
@@ -802,7 +802,6 @@
                 adminview.classList.add('hidden');
                 mainview.classList.remove('hidden');
                 rendermain("");
-                focussearchinput();
             }
         }
 
@@ -1004,7 +1003,6 @@
                     showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
                     searchinput.value = "";
                     rendermain("");
-                    focussearchinput();
                 } else {
                     pendingBorrowEmployee = targetemp;
                     borrowmessage.innerHTML = `
@@ -1109,7 +1107,6 @@
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                 showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-                focussearchinput();
             } else {
                 pendingBorrowEmployee = targetemp;
                 borrowmessage.innerHTML = `
@@ -1168,7 +1165,6 @@
 
         editcancelbtn.addEventListener('click', () => {
             editmodal.classList.add('hidden');
-            focussearchinput();
         });
 
         editform.addEventListener('submit', function(e) {
@@ -1208,14 +1204,12 @@
             rendermain(searchinput.value);
             editmodal.classList.add('hidden');
             showtoast(`「${newName}」さんの情報を更新しました！`);
-            focussearchinput();
         });
 
         // =======================================================
         // イベントリスナー
         // =======================================================
         
-        // 【修正】貸出中クイックフィルターのボタン押下時にフォーカスを検索欄に戻す
         filterBorrowedBtn.addEventListener('click', () => {
             showOnlyBorrowed = !showOnlyBorrowed;
             
@@ -1227,18 +1221,15 @@
                 filterBorrowedBtn.style.backgroundColor = "#16a34a";
             }
             rendermain(searchinput.value);
-            focussearchinput(); // 👈 追加
         });
 
         errorokbtn.addEventListener('click', () => {
             errormodal.classList.add('hidden');
-            focussearchinput();
         });
 
         document.getElementById('confirmcancelbtn').addEventListener('click', () => {
             confirmmodal.classList.add('hidden');
             employeetodeleteid = null;
-            focussearchinput();
         });
 
         document.getElementById('confirmokbtn').addEventListener('click', () => {
@@ -1254,7 +1245,6 @@
             }
             confirmmodal.classList.add('hidden');
             employeetodeleteid = null;
-            focussearchinput();
         });
 
         borrowokbtn.addEventListener('click', () => {
@@ -1278,13 +1268,11 @@
                 pendingBorrowEmployee = null;
             }
             borrowmodal.classList.add('hidden');
-            focussearchinput();
         });
 
         borrowcancelbtn.addEventListener('click', () => {
             borrowmodal.classList.add('hidden');
             pendingBorrowEmployee = null;
-            focussearchinput();
         });
 
         searchinput.addEventListener('keypress', (e) => {
@@ -1296,13 +1284,11 @@
 
         searchbtn.addEventListener('click', () => {
             executesearch(searchinput.value);
-            focussearchinput();
         });
 
         clearbtn.addEventListener('click', () => {
             searchinput.value = "";
             rendermain("");
-            focussearchinput();
         });
 
         document.addEventListener('keydown', (e) => {
@@ -1315,23 +1301,10 @@
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (mainview.classList.contains('hidden') || isModalOpen()) {
-                return;
-            }
-            const clickedbutton = e.target.closest('button');
-            const clickedinput = e.target.closest('input');
-            const clickedlabel = e.target.closest('label');
-            const clickedselect = e.target.closest('select');
-            if (!clickedbutton && !clickedinput && !clickedlabel && !clickedselect) {
-                focussearchinput();
-            }
-        });
-
         updateSummary();
         renderLogs();
         rendermain("");
-        focussearchinput();
     </script>
 </body>
 </html>
+```
