@@ -137,6 +137,17 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
+        .input-search {
+            border: 2px solid #60a5fa;
+            background-color: rgba(239, 246, 255, 0.5);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px;
+        }
+        .input-search:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
         .checkbox-container {
             background-color: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -395,12 +406,12 @@
                     <div class="panel">
                         <h2>🔍 スキャナー / 手入力 検索</h2>
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
-                        
+
                         <form id="mainform" onsubmit="return false;">
                             <!-- ① スキャン用入力欄（QRコードあり時のみ表示） -->
                             <div id="scaninputcontainer" class="form-group">
-                                <label>検索キー（スキャン用）</label>
-                                <input type="text" id="searchinput" class="input-text" placeholder="例: スキャンするか、タップして入力...">
+                                <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
+                                <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
                             </div>
 
                             <!-- ② 手入力用入力欄（QRコードなし時のみ表示） -->
@@ -1335,6 +1346,18 @@
         clearbtn.addEventListener('click', () => {
             clearInputs();
             rendermain("");
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
+                if (document.activeElement !== searchinput && document.activeElement !== manualnamesearch && document.activeElement !== manualidsearch && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (autotogglecheck.checked) {
+                        searchinput.focus();
+                        searchinput.value += e.key;
+                        e.preventDefault();
+                    }
+                }
+            }
         });
 
         updateSummary();
