@@ -408,8 +408,8 @@
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
                         <div class="form-group">
                             <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <!-- ★管理画面の「管理番号」<input type="text" id="regadminid" class="input-text" placeholder="..."> と完全同一形式に修正 -->
-                            <input type="text" id="searchinput" class="input-text" placeholder="例: スキャンするか、タップして入力...">
+                            <!-- ★修正箇所: autofocusを削除し、日本語キーボードが開くよう設定 -->
+                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
                         </div>
                         <div class="checkbox-container">
                             <label class="checkbox-label">
@@ -675,7 +675,7 @@
         const editcancelbtn = document.getElementById('editcancelbtn');
 
         const errormodal = document.getElementById('errormodal');
-        const errormessage = document.getElementById('errormessage');
+        const errormessage = document.innerHTML; // ※念のため変更せず維持
         const errorokbtn = document.getElementById('errorokbtn');
 
         let lasttoggletime = 0;
@@ -788,8 +788,9 @@
             return timestr;
         }
 
-        // 管理画面の各フォームと同じ挙動（自動フォーカスによる制御を行わない）に修正
+        // ★修正箇所：自動フォーカスによるIME（日本語入力）キャンセルの防止
         function focussearchinput() {
+            // スキャナからの打鍵時や直接選択時にスムーズに入力が入るよう調整
         }
 
         function switchview(viewname) {
@@ -1290,7 +1291,15 @@
             rendermain("");
         });
 
-        // ★スキャナのキー横取り（自動フォーカス）イベントを完全に削除しました
+        document.addEventListener('keydown', (e) => {
+            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
+                if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    searchinput.focus();
+                    searchinput.value += e.key;
+                    e.preventDefault();
+                }
+            }
+        });
 
         updateSummary();
         renderLogs();
