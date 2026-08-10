@@ -419,16 +419,33 @@
                     <div class="panel">
                         <h2>🔍 スキャナー / 手入力 検索</h2>
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
-                        <div class="form-group">
-                            <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autofocus autocomplete="off">
-                        </div>
+                        
+                        <form id="mainform" onsubmit="return false;">
+                            <!-- ① スキャン用入力欄（QRコードあり時のみ表示） -->
+                            <div id="scaninputcontainer" class="form-group">
+                                <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
+                                <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
+                            </div>
+
+                            <!-- ② 手入力用入力欄（QRコードなし時のみ表示） -->
+                            <div id="manualinputs" class="hidden">
+                                <div class="form-group">
+                                    <label>氏名</label>
+                                    <input type="text" id="manualnamesearch" class="input-text" placeholder="例: 多摩 太郎">
+                                </div>
+                                <div class="form-group">
+                                    <label>社員番号 / 管理番号</label>
+                                    <input type="text" id="manualidsearch" class="input-text" placeholder="例: S○○○○○○">
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="checkbox-container">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="autotogglecheck" checked>
                                 <span>QRコードを持っているか？</span>
                             </label>
-                            <span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　その後、検索キーを手入力しEnter</span>
+                            <span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　手入力欄（氏名・社員番号）が表示されます。</span>
                         </div>
                         <div class="btn-group">
                             <button id="searchbtn" class="btn btn-gray-dark" style="flex: 1;">検索する</button>
@@ -665,7 +682,11 @@
         const regid = document.getElementById('regid');
         const regname = document.getElementById('regname');
         const regcard = document.getElementById('regcard');
+        const scaninputcontainer = document.getElementById('scaninputcontainer');
         const searchinput = document.getElementById('searchinput');
+        const manualinputs = document.getElementById('manualinputs');
+        const manualnamesearch = document.getElementById('manualnamesearch');
+        const manualidsearch = document.getElementById('manualidsearch');
         const searchbtn = document.getElementById('searchbtn');
         const clearbtn = document.getElementById('clearbtn');
         const employeelist = document.getElementById('employeelist');
@@ -705,7 +726,29 @@
 
         let lasttoggletime = 0;
 
-        // いずれかのモーダル（ポップアップ）が開いているかを判定する共通関数
+        // ★「QRコードを持っているか？」の変更時に自動フォーカスを連動
+        autotogglecheck.addEventListener('change', () => {
+            updateInputVisibility();
+            if (autotogglecheck.checked) {
+                focussearchinput();
+            }
+        });
+
+        function updateInputVisibility() {
+            if (autotogglecheck.checked) {
+                // QRあり：スキャン用入力欄のみ表示、手入力欄は隠す
+                scaninputcontainer.classList.remove('hidden');
+                manualinputs.classList.add('hidden');
+                manualnamesearch.value = "";
+                manualidsearch.value = "";
+            } else {
+                // QRなし：スキャン用入力欄を隠し、手入力欄（氏名・社員番号）を表示
+                scaninputcontainer.classList.add('hidden');
+                manualinputs.classList.remove('hidden');
+                searchinput.value = "";
+            }
+        }
+
         function isModalOpen() {
             const modals = document.querySelectorAll('.modal-overlay');
             return Array.from(modals).some(m => !m.classList.contains('hidden'));
@@ -716,7 +759,6 @@
             updateSummary();
         }
 
-        // 履歴ログをメモリとストレージに追加して再描画する関数
         function addLog(name, action) {
             const now = new Date();
             const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -726,17 +768,16 @@
             const logTime = `${m}/${d} ${h}:${min}`;
 
             const newLog = { time: logTime, name: name, action: action };
-            logs.unshift(newLog); // 最新のものを先頭に挿入
+            logs.unshift(newLog);
             
             if (logs.length > 5) {
-                logs.pop(); // 5件を超えたら古いものを削除
+                logs.pop();
             }
             
             localStorage.setItem(storage_key + '_logs', JSON.stringify(logs));
             renderLogs();
         }
 
-        // 履歴ログ一覧を画面にレンダリングする関数
         function renderLogs() {
             const logList = document.getElementById('log-list');
             logList.innerHTML = "";
@@ -767,13 +808,11 @@
             });
         }
 
-        // 自作エラーモーダル表示関数
         function showerror(msg) {
-            errormessage.innerHTML = msg;
+            document.getElementById('errormessage').innerHTML = msg;
             errormodal.classList.remove('hidden');
         }
 
-        // 今日の「YYYY/MM/DD」文字列を返す
         function getTodayDateStr() {
             const now = new Date();
             const y = now.getFullYear();
@@ -782,7 +821,6 @@
             return `${y}/${m}/${d}`;
         }
 
-        // リアルタイムサマリーの数値を計算して表示更新する関数
         function updateSummary() {
             const todayStr = getTodayDateStr();
             let borrowedCount = 0;
@@ -819,12 +857,14 @@
             return timestr;
         }
 
+        // ★自動フォーカス関数：チェックが入っている時だけスキャン枠へフォーカスを入れる
         function focussearchinput() {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
+            if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 searchinput.focus();
             }
         }
 
+        // ★画面切替時（管理画面から復帰時）は自動的にチェックをONにしてフォーカス
         function switchview(viewname) {
             if (viewname === 'admin') {
                 mainview.classList.add('hidden');
@@ -833,8 +873,10 @@
             } else {
                 adminview.classList.add('hidden');
                 mainview.classList.remove('hidden');
+                autotogglecheck.checked = true; // 戻った時に自動チェックON
+                updateInputVisibility();
                 rendermain("");
-                focussearchinput();
+                focussearchinput(); // スキャン待機状態にフォーカス
             }
         }
 
@@ -916,11 +958,13 @@
 
         document.getElementById('foldersavecancelbtn').addEventListener('click', () => {
             foldersavemodal.classList.add('hidden');
+            focussearchinput();
         });
 
         document.getElementById('foldersaveokbtn').addEventListener('click', () => {
             foldersavemodal.classList.add('hidden');
             executeexport();
+            focussearchinput();
         });
 
         function executeexport() {
@@ -995,18 +1039,29 @@
             reader.readAsText(file);
         }
 
-        function executesearch(keyword) {
+        function getSearchKeyword() {
+            if (!autotogglecheck.checked) {
+                const nameVal = manualnamesearch.value.trim();
+                const idVal = manualidsearch.value.trim();
+                return nameVal || idVal || "";
+            }
+            return searchinput.value.trim();
+        }
+
+        function executesearch() {
+            const keyword = getSearchKeyword();
             const cleankeyword = keyword.trim().toLowerCase();
             const filtered = employees.filter(emp => {
                 return emp.id.toLowerCase().includes(cleankeyword) ||
                        emp.name.toLowerCase().includes(cleankeyword) ||
-                       emp.card.toLowerCase().includes(cleankeyword);
+                       emp.card.toLowerCase().includes(cleankeyword) ||
+                       (emp.adminid && emp.adminid.toLowerCase().includes(cleankeyword));
             });
 
             if (autotogglecheck.checked && cleankeyword !== "" && filtered.length === 1) {
                 const now = Date.now();
                 if (now - lasttoggletime < 1000) {
-                    searchinput.value = "";
+                    clearInputs();
                     return;
                 }
                 lasttoggletime = now;
@@ -1014,7 +1069,6 @@
                 const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
                 const nowtime = getformatteddatetime();
 
-                // 返却、もしくはポップアップ除外部署の貸出の場合は「即時確定」
                 if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
                     employees = employees.map(emp => {
                         if (emp.id === targetemp.id) {
@@ -1035,21 +1089,26 @@
                     
                     const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                     showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-                    searchinput.value = "";
+                    clearInputs();
                     rendermain("");
                     focussearchinput();
                 } else {
-                    // ポップアップ対象部署の「貸出」の時だけ確認画面を出す
                     pendingBorrowEmployee = targetemp;
                     borrowmessage.innerHTML = `
                         <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
                     `;
                     borrowmodal.classList.remove('hidden');
-                    searchinput.value = ""; 
+                    clearInputs();
                 }
                 return;
             }
             rendermain(keyword);
+        }
+
+        function clearInputs() {
+            searchinput.value = "";
+            manualnamesearch.value = "";
+            manualidsearch.value = "";
         }
 
         function rendermain(filterkeyword = "") {
@@ -1058,7 +1117,8 @@
             let filtered = employees.filter(emp => {
                 return emp.id.toLowerCase().includes(keyword) ||
                        emp.name.toLowerCase().includes(keyword) ||
-                       emp.card.toLowerCase().includes(keyword);
+                       emp.card.toLowerCase().includes(keyword) ||
+                       (emp.adminid && emp.adminid.toLowerCase().includes(keyword));
             });
 
             if (showOnlyBorrowed) {
@@ -1136,7 +1196,7 @@
                     return emp;
                 });
                 savetostorage();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
                 addLog(targetemp.name, newstatus === 'borrowed' ? '貸出' : '返却');
@@ -1239,7 +1299,7 @@
 
             savetostorage();
             renderadmin();
-            rendermain(searchinput.value);
+            rendermain(getSearchKeyword());
             editmodal.classList.add('hidden');
             showtoast(`「${newName}」さんの情報を更新しました！`);
             focussearchinput();
@@ -1249,7 +1309,6 @@
         // イベントリスナー
         // =======================================================
         
-        // 貸出中クイックフィルターのボタン動作
         filterBorrowedBtn.addEventListener('click', () => {
             showOnlyBorrowed = !showOnlyBorrowed;
             
@@ -1260,8 +1319,8 @@
                 filterBorrowedBtn.textContent = "🔴 貸出中メンバーだけを表示";
                 filterBorrowedBtn.style.backgroundColor = "#16a34a";
             }
-            rendermain(searchinput.value);
-            focussearchinput(); // 💡 検索欄へフォーカスを復帰
+            rendermain(getSearchKeyword());
+            focussearchinput();
         });
 
         errorokbtn.addEventListener('click', () => {
@@ -1281,7 +1340,7 @@
                 employees = employees.filter(e => e.id !== employeetodeleteid);
                 savetostorage();
                 renderadmin();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 if (deletedEmp) {
                     showtoast(`「${deletedEmp.name}」さんのデータを削除しました。`, false);
                 }
@@ -1303,7 +1362,7 @@
                     return emp;
                 });
                 savetostorage();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
                 addLog(targetemp.name, '貸出');
@@ -1321,27 +1380,29 @@
             focussearchinput();
         });
 
-        searchinput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' || e.key === 'enter') {
-                e.preventDefault();
-                executesearch(searchinput.value);
-            }
+        [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
+            inputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === 'enter') {
+                    e.preventDefault();
+                    executesearch();
+                }
+            });
         });
 
         searchbtn.addEventListener('click', () => {
-            executesearch(searchinput.value);
+            executesearch();
             focussearchinput();
         });
 
         clearbtn.addEventListener('click', () => {
-            searchinput.value = "";
+            clearInputs();
             rendermain("");
             focussearchinput();
         });
 
-        // どこからでもスキャナ入力を受け付けるイベント
+        // ★スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
         document.addEventListener('keydown', (e) => {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
+            if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     searchinput.focus();
                     searchinput.value += e.key;
@@ -1350,24 +1411,14 @@
             }
         });
 
-        // 余白クリック時の自動フォーカス（モーダル開閉時は制御）
-        document.addEventListener('click', (e) => {
-            if (mainview.classList.contains('hidden') || isModalOpen()) {
-                return;
-            }
-            const clickedbutton = e.target.closest('button');
-            const clickedinput = e.target.closest('input');
-            const clickedlabel = e.target.closest('label');
-            const clickedselect = e.target.closest('select');
-            if (!clickedbutton && !clickedinput && !clickedlabel && !clickedselect) {
-                focussearchinput();
-            }
-        });
-
-        // 起動時初期化処理
+        // 初期化処理
         updateSummary();
         renderLogs();
         rendermain("");
+        
+        // ★起動時および管理画面からの復帰時に自動的にチェックON＆フォーカス
+        autotogglecheck.checked = true;
+        updateInputVisibility();
         focussearchinput();
     </script>
 </body>
