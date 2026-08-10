@@ -137,17 +137,6 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
-        .input-search {
-            border: 2px solid #60a5fa;
-            background-color: rgba(239, 246, 255, 0.5);
-            font-size: 14px;
-            font-weight: 600;
-            padding: 12px;
-        }
-        .input-search:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
         .checkbox-container {
             background-color: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -406,18 +395,35 @@
                     <div class="panel">
                         <h2>🔍 スキャナー / 手入力 検索</h2>
                         <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
-                        <div class="form-group">
-                            <label>検索キー（社員番号【S番/P番】・氏名・カード番号）</label>
-                            <!-- ★修正箇所: autofocusを削除し、日本語キーボードが開くよう設定 -->
-                            <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンするか、タップして入力..." autocomplete="off">
-                        </div>
+                        
+                        <form id="mainform" onsubmit="return false;">
+                            <!-- ① スキャン用入力欄（QRコードあり時のみ表示） -->
+                            <div id="scaninputcontainer" class="form-group">
+                                <label>検索キー（スキャン用）</label>
+                                <input type="text" id="searchinput" class="input-text" placeholder="例: スキャンするか、タップして入力...">
+                            </div>
+
+                            <!-- ② 手入力用入力欄（QRコードなし時のみ表示） -->
+                            <div id="manualinputs" class="hidden">
+                                <div class="form-group">
+                                    <label>氏名</label>
+                                    <input type="text" id="manualnamesearch" class="input-text" placeholder="例: 多摩 太郎">
+                                </div>
+                                <div class="form-group">
+                                    <label>社員番号 / 管理番号</label>
+                                    <input type="text" id="manualidsearch" class="input-text" placeholder="例: S○○○○○○">
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="checkbox-container">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="autotogglecheck" checked>
                                 <span>QRコードを持っているか？</span>
                             </label>
-                            <span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　その後、検索キーを手入力しEnter</span>
+                            <span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　手入力欄（氏名・社員番号）が表示されます。</span>
                         </div>
+
                         <div class="btn-group">
                             <button id="searchbtn" class="btn btn-gray-dark" style="flex: 1;">検索する</button>
                             <button id="clearbtn" class="btn btn-gray-light">クリア</button>
@@ -643,7 +649,11 @@
         const regid = document.getElementById('regid');
         const regname = document.getElementById('regname');
         const regcard = document.getElementById('regcard');
+        const scaninputcontainer = document.getElementById('scaninputcontainer');
         const searchinput = document.getElementById('searchinput');
+        const manualinputs = document.getElementById('manualinputs');
+        const manualnamesearch = document.getElementById('manualnamesearch');
+        const manualidsearch = document.getElementById('manualidsearch');
         const searchbtn = document.getElementById('searchbtn');
         const clearbtn = document.getElementById('clearbtn');
         const employeelist = document.getElementById('employeelist');
@@ -675,10 +685,28 @@
         const editcancelbtn = document.getElementById('editcancelbtn');
 
         const errormodal = document.getElementById('errormodal');
-        const errormessage = document.innerHTML; // ※念のため変更せず維持
+        const errormessage = document.getElementById('errormessage');
         const errorokbtn = document.getElementById('errorokbtn');
 
         let lasttoggletime = 0;
+
+        // ★「QRコードを持っているか？」のチェック有無で、表示する入力欄を制御
+        autotogglecheck.addEventListener('change', updateInputVisibility);
+
+        function updateInputVisibility() {
+            if (autotogglecheck.checked) {
+                // QRあり：スキャン用入力欄のみ表示、手入力欄は隠す
+                scaninputcontainer.classList.remove('hidden');
+                manualinputs.classList.add('hidden');
+                manualnamesearch.value = "";
+                manualidsearch.value = "";
+            } else {
+                // QRなし：スキャン用入力欄を隠し、手入力欄（氏名・社員番号）を表示
+                scaninputcontainer.classList.add('hidden');
+                manualinputs.classList.remove('hidden');
+                searchinput.value = "";
+            }
+        }
 
         function isModalOpen() {
             const modals = document.querySelectorAll('.modal-overlay');
@@ -788,9 +816,7 @@
             return timestr;
         }
 
-        // ★修正箇所：自動フォーカスによるIME（日本語入力）キャンセルの防止
         function focussearchinput() {
-            // スキャナからの打鍵時や直接選択時にスムーズに入力が入るよう調整
         }
 
         function switchview(viewname) {
@@ -962,18 +988,29 @@
             reader.readAsText(file);
         }
 
-        function executesearch(keyword) {
+        function getSearchKeyword() {
+            if (!autotogglecheck.checked) {
+                const nameVal = manualnamesearch.value.trim();
+                const idVal = manualidsearch.value.trim();
+                return nameVal || idVal || "";
+            }
+            return searchinput.value.trim();
+        }
+
+        function executesearch() {
+            const keyword = getSearchKeyword();
             const cleankeyword = keyword.trim().toLowerCase();
             const filtered = employees.filter(emp => {
                 return emp.id.toLowerCase().includes(cleankeyword) ||
                        emp.name.toLowerCase().includes(cleankeyword) ||
-                       emp.card.toLowerCase().includes(cleankeyword);
+                       emp.card.toLowerCase().includes(cleankeyword) ||
+                       (emp.adminid && emp.adminid.toLowerCase().includes(cleankeyword));
             });
 
             if (autotogglecheck.checked && cleankeyword !== "" && filtered.length === 1) {
                 const now = Date.now();
                 if (now - lasttoggletime < 1000) {
-                    searchinput.value = "";
+                    clearInputs();
                     return;
                 }
                 lasttoggletime = now;
@@ -1001,7 +1038,7 @@
                     
                     const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                     showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-                    searchinput.value = "";
+                    clearInputs();
                     rendermain("");
                 } else {
                     pendingBorrowEmployee = targetemp;
@@ -1009,11 +1046,17 @@
                         <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
                     `;
                     borrowmodal.classList.remove('hidden');
-                    searchinput.value = ""; 
+                    clearInputs();
                 }
                 return;
             }
             rendermain(keyword);
+        }
+
+        function clearInputs() {
+            searchinput.value = "";
+            manualnamesearch.value = "";
+            manualidsearch.value = "";
         }
 
         function rendermain(filterkeyword = "") {
@@ -1022,7 +1065,8 @@
             let filtered = employees.filter(emp => {
                 return emp.id.toLowerCase().includes(keyword) ||
                        emp.name.toLowerCase().includes(keyword) ||
-                       emp.card.toLowerCase().includes(keyword);
+                       emp.card.toLowerCase().includes(keyword) ||
+                       (emp.adminid && emp.adminid.toLowerCase().includes(keyword));
             });
 
             if (showOnlyBorrowed) {
@@ -1100,7 +1144,7 @@
                     return emp;
                 });
                 savetostorage();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
                 addLog(targetemp.name, newstatus === 'borrowed' ? '貸出' : '返却');
@@ -1201,7 +1245,7 @@
 
             savetostorage();
             renderadmin();
-            rendermain(searchinput.value);
+            rendermain(getSearchKeyword());
             editmodal.classList.add('hidden');
             showtoast(`「${newName}」さんの情報を更新しました！`);
         });
@@ -1220,7 +1264,7 @@
                 filterBorrowedBtn.textContent = "🔴 貸出中メンバーだけを表示";
                 filterBorrowedBtn.style.backgroundColor = "#16a34a";
             }
-            rendermain(searchinput.value);
+            rendermain(getSearchKeyword());
         });
 
         errorokbtn.addEventListener('click', () => {
@@ -1238,7 +1282,7 @@
                 employees = employees.filter(e => e.id !== employeetodeleteid);
                 savetostorage();
                 renderadmin();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 if (deletedEmp) {
                     showtoast(`「${deletedEmp.name}」さんのデータを削除しました。`, false);
                 }
@@ -1259,7 +1303,7 @@
                     return emp;
                 });
                 savetostorage();
-                rendermain(searchinput.value);
+                rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
                 addLog(targetemp.name, '貸出');
@@ -1275,35 +1319,28 @@
             pendingBorrowEmployee = null;
         });
 
-        searchinput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' || e.key === 'enter') {
-                e.preventDefault();
-                executesearch(searchinput.value);
-            }
+        [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
+            inputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === 'enter') {
+                    e.preventDefault();
+                    executesearch();
+                }
+            });
         });
 
         searchbtn.addEventListener('click', () => {
-            executesearch(searchinput.value);
+            executesearch();
         });
 
         clearbtn.addEventListener('click', () => {
-            searchinput.value = "";
+            clearInputs();
             rendermain("");
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (!mainview.classList.contains('hidden') && !isModalOpen()) {
-                if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    searchinput.focus();
-                    searchinput.value += e.key;
-                    e.preventDefault();
-                }
-            }
         });
 
         updateSummary();
         renderLogs();
         rendermain("");
+        updateInputVisibility();
     </script>
 </body>
 </html>
