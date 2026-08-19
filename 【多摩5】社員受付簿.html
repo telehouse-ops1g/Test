@@ -606,7 +606,7 @@
         </div>
     </div>
 
-    <!-- ★受付履歴モーダル（カード番号列の表示追加） -->
+    <!-- ★受付履歴モーダル（カード番号列表示版） -->
     <div id="historymodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
         <div style="background: white; padding: 24px; border-radius: 12px; max-width: 900px; width: 100%; height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
@@ -825,6 +825,14 @@
         let historyFilterOnlyBorrowed = false;
         let lasttoggletime = 0;
 
+        // ★ 全角英数字記号を半角に自動変換する関数
+        function toHalfWidth(str) {
+            if (!str) return "";
+            return str.replace(/[!-~]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            }).replace(/”/g, '"').replace(/’/g, "'").replace(/　/g, " ");
+        }
+
         autotogglecheck.addEventListener('change', () => {
             updateInputVisibility();
             if (autotogglecheck.checked) {
@@ -901,10 +909,11 @@
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
         }
 
-        // ★ 履歴画面の描画処理（カード番号の列表示追加）
+        // ★ 履歴画面の描画処理（カード番号の列表示付き）
         function renderHistoryTable() {
             historyTableBody.innerHTML = "";
-            const keyword = historySearchInput.value.trim().toLowerCase();
+            const rawKeyword = historySearchInput.value.trim();
+            const keyword = toHalfWidth(rawKeyword).toLowerCase(); // 全角半角統一
             const selectedDate = historyDateInput.value; // "YYYY-MM-DD" 形式で取得
 
             let targetDateFormatted = "";
@@ -913,10 +922,14 @@
             }
 
             let filtered = fullHistoryLogs.filter(item => {
+                const idHalf = toHalfWidth(item.id).toLowerCase();
+                const cardHalf = toHalfWidth(item.card).toLowerCase();
+                const nameLower = item.name.toLowerCase();
+
                 // 1. キーワード検索（氏名、社員番号、カード番号）
-                const matchKeyword = item.name.toLowerCase().includes(keyword) ||
-                                     item.id.toLowerCase().includes(keyword) ||
-                                     (item.card && item.card.toLowerCase().includes(keyword));
+                const matchKeyword = nameLower.includes(keyword) ||
+                                     idHalf.includes(keyword) ||
+                                     cardHalf.includes(keyword);
 
                 // 2. カレンダー日付フィルター（貸出日時 または 返却日時 が指定日に一致するか）
                 let matchDate = true;
@@ -1223,16 +1236,22 @@
         }
 
         function executesearch() {
-            const keyword = getSearchKeyword();
-            const cleankeyword = keyword.trim().toLowerCase();
+            const rawKeyword = getSearchKeyword();
+            const keyword = toHalfWidth(rawKeyword).trim().toLowerCase(); // ★ 全角を自動で半角に変換
+
             const filtered = employees.filter(emp => {
-                return emp.id.toLowerCase().includes(cleankeyword) ||
-                       emp.name.toLowerCase().includes(cleankeyword) ||
-                       emp.card.toLowerCase().includes(cleankeyword) ||
-                       (emp.adminid && emp.adminid.toLowerCase().includes(cleankeyword));
+                const idHalf = toHalfWidth(emp.id).toLowerCase();
+                const cardHalf = toHalfWidth(emp.card).toLowerCase();
+                const adminidHalf = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                const nameLower = emp.name.toLowerCase();
+
+                return idHalf.includes(keyword) ||
+                       nameLower.includes(keyword) ||
+                       cardHalf.includes(keyword) ||
+                       adminidHalf.includes(keyword);
             });
 
-            if (autotogglecheck.checked && cleankeyword !== "" && filtered.length === 1) {
+            if (autotogglecheck.checked && keyword !== "" && filtered.length === 1) {
                 const now = Date.now();
                 if (now - lasttoggletime < 1000) {
                     clearInputs();
@@ -1277,7 +1296,7 @@
                 }
                 return;
             }
-            rendermain(keyword);
+            rendermain(rawKeyword);
         }
 
         function clearInputs() {
@@ -1288,12 +1307,18 @@
 
         function rendermain(filterkeyword = "") {
             employeelist.innerHTML = "";
-            const keyword = filterkeyword.trim().toLowerCase();
+            const keyword = toHalfWidth(filterkeyword.trim()).toLowerCase(); // ★ 全角を自動で半角に変換
+
             let filtered = employees.filter(emp => {
-                return emp.id.toLowerCase().includes(keyword) ||
-                       emp.name.toLowerCase().includes(keyword) ||
-                       emp.card.toLowerCase().includes(keyword) ||
-                       (emp.adminid && emp.adminid.toLowerCase().includes(keyword));
+                const idHalf = toHalfWidth(emp.id).toLowerCase();
+                const cardHalf = toHalfWidth(emp.card).toLowerCase();
+                const adminidHalf = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                const nameLower = emp.name.toLowerCase();
+
+                return idHalf.includes(keyword) ||
+                       nameLower.includes(keyword) ||
+                       cardHalf.includes(keyword) ||
+                       adminidHalf.includes(keyword);
             });
 
             if (showOnlyBorrowed) {
@@ -1391,11 +1416,11 @@
 
         registerform.addEventListener('submit', function(e) {
             e.preventDefault();
-            const id = regid.value.trim();
+            const id = toHalfWidth(regid.value.trim()); // ★ 登録時も半角化
             const name = regname.value.trim();
-            const card = regcard.value.trim();
+            const card = toHalfWidth(regcard.value.trim()); // ★ 登録時も半角化
             const dept = document.getElementById('regdept').value;
-            const adminid = document.getElementById('regadminid').value.trim();
+            const adminid = toHalfWidth(document.getElementById('regadminid').value.trim());
 
             if (employees.some(emp => emp.id === id)) {
                 showerror(`社員番号 [${id}] は既に登録されています。`);
@@ -1444,11 +1469,11 @@
         editform.addEventListener('submit', function(e) {
             e.preventDefault();
             const oldId = editoldid.value;
-            const newId = editid.value.trim();
+            const newId = toHalfWidth(editid.value.trim()); // ★ 編集保存時も半角化
             const newName = editname.value.trim();
-            const newCard = editcard.value.trim();
+            const newCard = toHalfWidth(editcard.value.trim()); // ★ 編集保存時も半角化
             const newDept = editdept.value;
-            const newAdminId = editadminid.value.trim();
+            const newAdminId = toHalfWidth(editadminid.value.trim());
 
             if (employees.some(emp => emp.id === newId && emp.id !== oldId)) {
                 showerror(`社員番号 [${newId}] は既に別の社員で登録されています。`);
