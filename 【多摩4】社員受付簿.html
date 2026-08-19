@@ -606,19 +606,19 @@
         </div>
     </div>
 
-    <!-- ★受付履歴モーダル（スタイリッシュなクリアボタン＆全リセット連動） -->
+    <!-- ★受付履歴モーダル（カード番号列の表示追加） -->
     <div id="historymodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
-        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 850px; width: 100%; height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
+        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 900px; width: 100%; height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">貸出・返却 履歴（直近30日分）</h3>
+                <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">📜 貸出・返却 履歴（直近30日分）</h3>
                 <button id="close-history-btn" class="btn btn-gray-light" style="padding: 6px 12px;">✕ 閉じる</button>
             </div>
             
-            <!-- 履歴フィルター機能（キーワード ＋ カレンダーピッカー ＋ クリアボタン） -->
+            <!-- 履歴フィルター機能 -->
             <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;">
                 <input type="text" id="history-search-input" class="input-text" style="flex: 2; min-width: 180px;" placeholder="氏名、社員番号、カード番号で検索...">
                 
-                <!-- カレンダー選択ピッカー ＆ 見た目を良くしたクリアボタン -->
+                <!-- カレンダー選択ピッカー ＆ クリアボタン -->
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <input type="date" id="history-date-input" class="input-text" style="padding: 8px 10px; font-size: 12px; cursor: pointer; width: auto;">
                     <button id="history-date-clear-btn" class="btn-clear-stylish" title="検索条件をクリア">
@@ -635,7 +635,8 @@
                         <tr>
                             <th>状態</th>
                             <th>氏名</th>
-                            <th>社員番号 / カテゴリ</th>
+                            <th>社員番号 / 部署</th>
+                            <th>カード番号</th>
                             <th>貸出日時</th>
                             <th>返却日時</th>
                         </tr>
@@ -898,7 +899,7 @@
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
         }
 
-        // ★ 履歴画面の描画処理（キーワード ＋ カレンダーピッカー ＋ 貸出中切り替え）
+        // ★ 履歴画面の描画処理（カード番号の列表示追加）
         function renderHistoryTable() {
             historyTableBody.innerHTML = "";
             const keyword = historySearchInput.value.trim().toLowerCase();
@@ -913,7 +914,7 @@
                 // 1. キーワード検索（氏名、社員番号、カード番号）
                 const matchKeyword = item.name.toLowerCase().includes(keyword) ||
                                      item.id.toLowerCase().includes(keyword) ||
-                                     item.card.toLowerCase().includes(keyword);
+                                     (item.card && item.card.toLowerCase().includes(keyword));
 
                 // 2. カレンダー日付フィルター（貸出日時 または 返却日時 が指定日に一致するか）
                 let matchDate = true;
@@ -936,7 +937,7 @@
             if (filtered.length === 0) {
                 historyTableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; color: var(--text-light); padding: 24px;">該当する履歴データが見つかりませんでした。</td>
+                        <td colspan="6" style="text-align: center; color: var(--text-light); padding: 24px;">該当する履歴データが見つかりませんでした。</td>
                     </tr>
                 `;
                 return;
@@ -953,6 +954,7 @@
                     <td>${statusBadge}</td>
                     <td style="font-weight: bold;">${item.name}</td>
                     <td><span style="font-family: monospace;">${item.id}</span> <span style="font-size: 10px; color: var(--text-gray);">【${item.dept}】</span></td>
+                    <td style="font-family: monospace; font-weight: bold; color: var(--text-dark);">${item.card || "-"}</td>
                     <td style="font-family: monospace;">${item.borrowTime || "-"}</td>
                     <td style="font-family: monospace;">${item.returnTime || "-"}</td>
                 `;
