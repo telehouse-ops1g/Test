@@ -27,16 +27,16 @@
             color: var(--text-dark);
             height: 100vh;
             overflow: hidden;
-            padding: 12px;
+            padding: 16px;
         }
         .container {
             max-width: 1140px;
-            height: calc(100vh - 24px);
+            height: calc(100vh - 32px);
             margin: 0 auto;
             background-color: var(--bg-white);
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-            padding: 18px 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
         }
@@ -50,13 +50,13 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
             gap: 12px;
             flex-shrink: 0;
         }
         .header h1 {
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 700;
         }
         .header-btn-group {
@@ -66,7 +66,7 @@
         .grid-layout {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 16px;
+            gap: 24px;
             flex-grow: 1;
             overflow: hidden;
             height: 100%;
@@ -77,20 +77,19 @@
                 overflow-y: auto;
             }
         }
-        
-        /* ★ サイドバーをスワイプ不要で固定表示用スタイル ★ */
         .sidebar {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 16px;
             height: 100%;
-            overflow: hidden;
+            overflow-y: auto;
+            padding-right: 4px;
         }
         .panel {
             background-color: #f9fafb;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px 14px;
+            padding: 16px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             flex-shrink: 0;
         }
@@ -99,41 +98,41 @@
             border-color: #fca5a5;
         }
         .panel h2 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
-            margin-bottom: 2px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         .panel-admin h2 {
             color: #991b1b;
         }
         .panel p {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-gray);
-            margin-bottom: 8px;
-            line-height: 1.3;
+            margin-bottom: 12px;
+            line-height: 1.4;
         }
         .form-group {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .form-group label {
             display: block;
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--text-gray);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
         .form-group label span {
             color: #dc2626;
         }
         .input-text {
             width: 100%;
-            padding: 8px 10px;
+            padding: 10px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            font-size: 12.5px;
+            font-size: 13px;
             -webkit-user-select: text;
             user-select: text;
         }
@@ -145,9 +144,9 @@
         .input-search {
             border: 2px solid #60a5fa;
             background-color: rgba(239, 246, 255, 0.5);
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
-            padding: 10px 12px;
+            padding: 12px;
         }
         .input-search:focus {
             border-color: #2563eb;
@@ -157,33 +156,31 @@
             background-color: #eff6ff;
             border: 1px solid #bfdbfe;
             border-radius: 6px;
-            padding: 8px 10px;
-            margin-bottom: 10px;
+            padding: 10px;
+            margin-bottom: 16px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
         .checkbox-label {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 11.5px;
+            gap: 8px;
+            font-size: 12px;
             font-weight: 700;
             color: #1e40af;
             cursor: pointer;
         }
         .checkbox-label input {
-            width: 15px;
-            height: 15px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
         .checkbox-desc {
-            font-size: 9.5px;
+            font-size: 10px;
             color: #2563eb;
-            padding-left: 21px;
+            padding-left: 24px;
         }
-        
-        /* ★ ボタンサイズを拡大して押しやすく改修 ★ */
         .btn-group {
             display: flex;
             gap: 8px;
@@ -192,9 +189,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 11px 16px;
+            padding: 10px 16px;
             border-radius: 6px;
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             border: none;
@@ -215,11 +212,12 @@
         .btn-red:hover { background-color: #b91c1c; }
         .btn-full { width: 100%; }
 
+        /* スタイリッシュなクリアボタン用スタイル */
         .btn-clear-stylish {
             background-color: #f3f4f6;
-            color: #4b5563;
+            color: #374151;
             border: 1px solid #d1d5db;
-            padding: 9px 14px;
+            padding: 8px 14px;
             font-size: 12px;
             font-weight: 700;
             border-radius: 6px;
@@ -229,6 +227,7 @@
             align-items: center;
             gap: 4px;
             white-space: nowrap;
+            touch-action: manipulation;
         }
         .btn-clear-stylish:hover {
             background-color: #e5e7eb;
@@ -236,14 +235,15 @@
             border-color: #9ca3af;
         }
         .btn-clear-stylish:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
+            background-color: #d1d5db;
         }
 
         .result-panel {
             background-color: #f9fafb;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
+            padding: 20px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -254,24 +254,24 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
             flex-shrink: 0;
         }
         .result-header h2 {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-dark);
         }
         .result-count {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--text-gray);
         }
         .employee-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             overflow-y: auto;
             flex-grow: 1;
             max-height: none;
@@ -280,12 +280,12 @@
             background-color: var(--bg-white);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px 14px;
+            padding: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
         @media (max-width: 640px) {
             .employee-card {
@@ -297,7 +297,7 @@
         .employee-info {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
         .employee-meta {
             display: flex;
@@ -306,19 +306,19 @@
         }
         .employee-id-badge {
             font-family: monospace;
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--text-gray);
             background-color: #f3f4f6;
             padding: 2px 6px;
             border-radius: 4px;
         }
         .employee-name {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-dark);
         }
         .employee-card-no {
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--text-gray);
         }
         .employee-card-no span {
@@ -326,12 +326,12 @@
             font-weight: 700;
         }
         .employee-dates {
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--text-gray);
-            margin-top: 4px;
+            margin-top: 6px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
         .employee-dates span {
             display: flex;
@@ -341,11 +341,11 @@
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 3px 8px;
-            font-size: 10.5px;
+            padding: 4px 10px;
+            font-size: 11px;
             font-weight: 700;
             border-radius: 9999px;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         .badge-borrowed {
             background-color: #fee2e2;
@@ -358,7 +358,7 @@
             border: 1px solid #86efac;
         }
         .btn-status-toggle {
-            padding: 8px 14px;
+            padding: 8px 16px;
             font-size: 12px;
             font-weight: 700;
             border-radius: 6px;
@@ -366,7 +366,7 @@
             border: none;
             color: white;
             text-align: center;
-            min-width: 90px;
+            min-width: 100px;
             touch-action: manipulation;
         }
         .btn-status-borrow { background-color: #dc2626; }
@@ -391,7 +391,7 @@
             display: none !important;
         }
 
-        /* ★ 特大トースト通知スタイル ★ */
+        /* 特大トースト通知スタイル */
         .toast-container {
             position: fixed;
             top: 30px;
@@ -474,16 +474,16 @@
                 <div class="sidebar">
                     <div class="panel">
                         <h2>🔍 スキャナー / 手入力 検索</h2>
-                        <p>※スキャナー接続時は自動入力され画面のどこからでもスキャン可能です。</p>
+                        <p>※iPadにスキャナーを接続している場合、自動で入力され画面のどこからでもスキャン可能です。</p>
 
                         <form id="mainform" onsubmit="return false;">
-                            <!-- ① スキャン用入力欄 -->
+                            <!-- ① スキャン用入力欄（QRコードあり時のみ表示） -->
                             <div id="scaninputcontainer" class="form-group">
                                 <label>QRコードのスキャンのみ</label>
                                 <input type="text" id="searchinput" class="input-text input-search" placeholder="スキャンしてください..." autocomplete="off">
                             </div>
 
-                            <!-- ② 手入力用入力欄 -->
+                            <!-- ② 手入力用入力欄（QRコードなし時のみ表示） -->
                             <div id="manualinputs" class="hidden">
                                 <div class="form-group">
                                     <label>氏名</label>
@@ -501,7 +501,7 @@
                                 <input type="checkbox" id="autotogglecheck" checked>
                                 <span>QRコードを持っているか？</span>
                             </label>
-                            <span class="checkbox-desc">※QRがない場合はチェックを外すと手入力欄が出ます。</span>
+                            <span class="checkbox-desc">※QRコードがない場合はここの☑を外してください。<br>　手入力欄（氏名・社員番号）が表示されます。</span>
                         </div>
 
                         <div class="btn-group">
@@ -510,30 +510,21 @@
                         </div>
                     </div>
 
-                    <!-- 集計 ＆ ★直近3件の受付表示パネル -->
-                    <div class="panel" style="background-color: #f0fdf4; border-color: #86efac; flex-grow: 1; display: flex; flex-direction: column;">
+                    <!-- 集計パネル -->
+                    <div class="panel" style="background-color: #f0fdf4; border-color: #86efac;">
                         <h2>📊 貸出枚数カウント</h2>
-                        <div style="display: flex; gap: 8px; margin-bottom: 8px; margin-top: 4px;">
-                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; text-align: center;">
-                                <div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">現在貸出中</div>
-                                <div id="summary-borrowed-count" style="font-size: 20px; font-weight: bold; color: #dc2626; margin-top: 1px;">0</div>
+                        <p>本日および現在のカード貸出状況です。</p>
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px; margin-top: 8px;">
+                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-gray); font-weight: bold;">現在貸出中</div>
+                                <div id="summary-borrowed-count" style="font-size: 24px; font-weight: bold; color: #dc2626; margin-top: 2px;">0</div>
                             </div>
-                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; text-align: center;">
-                                <div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">本日貸出数</div>
-                                <div id="summary-today-count" style="font-size: 20px; font-weight: bold; color: #16a34a; margin-top: 1px;">0</div>
-                            </div>
-                        </div>
-                        <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white; margin-bottom: 8px; padding: 9px 12px; font-size: 12px;">🔴 貸出中メンバーだけを表示</button>
-
-                        <!-- ★ 直近3件の受付履歴表示エリア -->
-                        <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
-                            <div style="font-size: 10px; font-weight: bold; color: var(--text-gray); margin-bottom: 4px;">
-                                📜 直近の受付 (最新3件)
-                            </div>
-                            <div id="latest-log-container" style="background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 4px 8px; font-size: 10px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
-                                <div style="text-align: center; color: var(--text-light); padding: 8px 0;">受付履歴はありません</div>
+                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-gray); font-weight: bold;">本日貸出数</div>
+                                <div id="summary-today-count" style="font-size: 24px; font-weight: bold; color: #16a34a; margin-top: 2px;">0</div>
                             </div>
                         </div>
+                        <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white;">🔴 貸出中メンバーだけを表示</button>
                     </div>
                 </div>
 
@@ -576,8 +567,8 @@
                                     <option value="" disabled selected>選択してください</option>
                                     <option value="DC運用">DC運用</option>
                                     <option value="グローブシップ">グローブシップ</option>
-                                    <option value="多摩TCサポート">多摩TCサポート</option>
-                                    <option value="センターG(派遣)">センターG(派遣)</option>
+                                    <option value="EPI">EPI</option>
+                                    <option value="サービスエース">サービスエース</option>
                                     <option value="テレハウス技術部">テレハウス技術部</option>
                                     <option value="KDDI社員">KDDI社員</option>
                                     <option value="SE(ALTX)">SE(ALTX)</option>
@@ -587,16 +578,16 @@
                                 <label>管理番号 <span>*</span></label>
                                 <input type="text" id="regadminid" class="input-text" placeholder="例: お好きなものでどうぞ" required>
                             </div>
-                            <button type="submit" class="btn btn-red btn-full" style="margin-top: 6px;">登録する</button>
+                            <button type="submit" class="btn btn-red btn-full" style="margin-top: 8px;">登録する</button>
                         </form>
                     </div>
 
                     <div class="panel" style="background-color: #f0fdf4; border-color: #86efac;">
                         <h2>💾 データ管理 (バックアップ)</h2>
                         <p>登録データおよび全貸出履歴（30日分）を保存・復元できます。</p>
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
                             <button onclick="showfoldersaveguide()" class="btn btn-indigo btn-full" style="background-color: #16a34a;">📥 フォルダに保存</button>
-                            <div style="border-top: 1px solid #bbf7d0; margin-top: 4px; padding-top: 6px;">
+                            <div style="border-top: 1px solid #bbf7d0; margin-top: 8px; padding-top: 8px;">
                                 <label class="btn btn-gray-light btn-full" style="cursor: pointer; display: flex; border: 1px solid #86efac;">
                                     📤 ファイルから復元
                                     <input type="file" id="importfile" onchange="importdata(event)" accept=".json" style="display: none;">
@@ -617,7 +608,7 @@
         </div>
     </div>
 
-    <!-- ★受付履歴モーダル -->
+    <!-- 受付履歴モーダル -->
     <div id="historymodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
         <div style="background: white; padding: 24px; border-radius: 12px; max-width: 900px; width: 100%; height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
@@ -632,7 +623,7 @@
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <input type="date" id="history-date-input" class="input-text" style="padding: 8px 10px; font-size: 12px; cursor: pointer; width: auto;">
                     <button id="history-date-clear-btn" class="btn-clear-stylish" title="検索条件をクリア">
-                        <span>🔄 クリア</span>
+                        <span>🔄 条件をクリア</span>
                     </button>
                 </div>
 
@@ -727,8 +718,8 @@
                     <select id="editdept" class="input-text" style="background-color: white;" required>
                         <option value="DC運用">DC運用</option>
                         <option value="グローブシップ">グローブシップ</option>
-                        <option value="多摩TCサポート">多摩TCサポート</option>
-                        <option value="センターG(派遣)">センターG(派遣)</option>
+                        <option value="EPI">EPI</option>
+                        <option value="サービスエース">サービスエース</option>
                         <option value="テレハウス技術部">テレハウス技術部</option>
                         <option value="KDDI社員">KDDI社員</option>
                         <option value="SE(ALTX)">SE(ALTX)</option>
@@ -759,24 +750,25 @@
     <!-- JavaScript 処理 -->
     <script>
         const storage_key = 'employee_status_system_data_v3';
-        const gas_web_app_url = "https://script.google.com/macros/s/AKfycbxbSWdS2gAZZTa3AxadkMCqGEviqWSIiJ8RnBxTDPo5oax8NKh7IJxDch1JEHcNRzDW/exec";
+        const gas_web_app_url = "https://script.google.com/macros/s/AKfycbzN0KQv3sUm0k253IEDg_m-Ra8S21Tl_1Xv3RLTCBWyOu-LvrKWZsDS_S8FuMtC30q0/exec";
 
-        const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員"];
-        const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
+        // システム設定
+        const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員", "EPI", "サービスエース", "DC運用", "SE(ALTX)", "グローブシップ"];
+        const popup_exclude_depts = ["DC運用", "グローブシップ", "SE(ALTX)", "サービスエース"];
 
         let employees = JSON.parse(localStorage.getItem(storage_key)) || [
             { id: "P999999", name: "多摩 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
         ];
         let employeetodeleteid = null;
 
-        // ★ 1行まとめ履歴（30日保持データ）
+        // 1行まとめ履歴（30日保持データ）
         let fullHistoryLogs = JSON.parse(localStorage.getItem(storage_key + '_full_history_logs')) || [];
-
-        // ★ ホーム画面左下にリアルタイム表示する最新3件用配列
-        let latestThreeLogs = JSON.parse(localStorage.getItem(storage_key + '_latest_three_logs')) || [];
 
         let showOnlyBorrowed = false;
         let pendingBorrowEmployee = null;
+
+        // ★ 自動実行用タイマー変数
+        let scanTimer = null;
 
         const mainview = document.getElementById('mainview');
         const adminview = document.getElementById('adminview');
@@ -808,7 +800,6 @@
         const summaryBorrowedCount = document.getElementById('summary-borrowed-count');
         const summaryTodayCount = document.getElementById('summary-today-count');
         const filterBorrowedBtn = document.getElementById('filter-borrowed-btn');
-        const latestLogContainer = document.getElementById('latest-log-container');
 
         const editmodal = document.getElementById('editmodal');
         const editform = document.getElementById('editform');
@@ -838,12 +829,12 @@
         let historyFilterOnlyBorrowed = false;
         let lasttoggletime = 0;
 
-        // ★ 全角英数字記号を半角に自動変換する関数
+        // 全角英数字記号を半角に自動変換する関数
         function toHalfWidth(str) {
             if (!str) return "";
             return str.replace(/[!-~]/g, function(s) {
                 return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-            }).replace(/”/g, '"').replace(/’/g, "'").replace(/{1}/g, " ");
+            }).replace(/”/g, '"').replace(/’/g, "'").replace(/　/g, " ");
         }
 
         autotogglecheck.addEventListener('change', () => {
@@ -877,7 +868,7 @@
         }
 
         // =======================================================
-        // 蓄積履歴の管理処理（1セット＝1行）＆左下直近3件更新
+        // 蓄積履歴の管理処理（1セット＝1行）
         // =======================================================
         function addFullHistory(emp, action) {
             const now = new Date();
@@ -920,56 +911,9 @@
             fullHistoryLogs = fullHistoryLogs.filter(item => !item.timestamp || item.timestamp > thirtyDaysAgo);
 
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
-
-            // ★ 左下パネル用の最新3件ログ追加＆保存
-            const shortTime = timeStr.substring(5); // MM/DD HH:mm
-            latestThreeLogs.unshift({
-                time: shortTime,
-                name: emp.name,
-                action: action
-            });
-            if (latestThreeLogs.length > 3) {
-                latestThreeLogs.pop();
-            }
-            localStorage.setItem(storage_key + '_latest_three_logs', JSON.stringify(latestThreeLogs));
-
-            // ★ 左下パネル描画更新
-            renderLatestLogs();
         }
 
-        // ★ ホーム画面左下「直近3件」のレンダリング関数
-        function renderLatestLogs() {
-            if (!latestLogContainer) return;
-            latestLogContainer.innerHTML = "";
-
-            if (latestThreeLogs.length === 0) {
-                latestLogContainer.innerHTML = `<div style="text-align: center; color: var(--text-light); padding: 8px 0;">受付履歴はありません</div>`;
-                return;
-            }
-
-            latestThreeLogs.forEach(log => {
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.justifyContent = 'space-between';
-                row.style.alignItems = 'center';
-                row.style.padding = '3px 0';
-                row.style.borderBottom = '1px dashed var(--border-color)';
-
-                const isBorrow = log.action === "貸出";
-                const badge = isBorrow 
-                    ? `<span style="color: #dc2626; font-weight: bold;">[貸出]</span>` 
-                    : `<span style="color: #16a34a; font-weight: bold;">[返却]</span>`;
-
-                row.innerHTML = `
-                    <span style="color: var(--text-gray); font-family: monospace;">${log.time}</span>
-                    <span style="font-weight: bold; flex-grow: 1; margin: 0 5px; color: var(--text-dark); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.name}</span>
-                    <span>${badge}</span>
-                `;
-                latestLogContainer.appendChild(row);
-            });
-        }
-
-        // ★ 履歴画面の描画処理（カード番号列表示版）
+        // 履歴画面の描画処理
         function renderHistoryTable() {
             historyTableBody.innerHTML = "";
             const rawKeyword = historySearchInput.value.trim();
@@ -1104,7 +1048,6 @@
             }
         }
 
-        // ★ 特大トースト通知関数 ★
         function showtoast(message, issuccess = true) {
             const toast = document.createElement('div');
             toast.className = `toast ${issuccess ? 'toast-success' : 'toast-error'}`;
@@ -1270,7 +1213,6 @@
                             }
                             savetostorage();
                             renderadmin();
-                            renderLatestLogs();
                             showtoast("データを正常に復元しました。");
                         }
                     } else {
@@ -1294,8 +1236,12 @@
         }
 
         function executesearch() {
+            if (scanTimer) clearTimeout(scanTimer); // タイマーをリセット
+
             const rawKeyword = getSearchKeyword();
             const keyword = toHalfWidth(rawKeyword).trim().toLowerCase();
+
+            if (!keyword) return;
 
             const filtered = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
@@ -1336,7 +1282,6 @@
                     savetostorage();
                     sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
-                    // ★ ログ蓄積＆左下直近3件更新
                     addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
                     const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1457,7 +1402,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1568,7 +1512,6 @@
         // イベントリスナー
         // =======================================================
         
-        // 履歴モーダルイベント
         openHistoryBtn.addEventListener('click', () => {
             renderHistoryTable();
             historymodal.classList.remove('hidden');
@@ -1583,12 +1526,10 @@
             renderHistoryTable();
         });
 
-        // カレンダーピッカー入力・クリアイベント
         historyDateInput.addEventListener('change', () => {
             renderHistoryTable();
         });
 
-        // ★「クリア」ボタンタップ時：日付と氏名検索枠をまとめてクリア＆全件再描画
         historyDateClearBtn.addEventListener('click', () => {
             historyDateInput.value = "";
             historySearchInput.value = "";
@@ -1663,7 +1604,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, '貸出');
                 
                 showtoast(`「${targetemp.name}」さんのステータスを 🔴 貸出中 に変更しました`);
@@ -1677,6 +1617,21 @@
             borrowmodal.classList.add('hidden');
             pendingBorrowEmployee = null;
             focussearchinput();
+        });
+
+        // ★★★ スキャン漏れ防止ガード（タイマー自動確定処理） ★★★
+        searchinput.addEventListener('input', () => {
+            if (!autotogglecheck.checked) return;
+            
+            // 入力が入るたびにタイマーをリセット
+            if (scanTimer) clearTimeout(scanTimer);
+            
+            // 高速な連続入力（スキャン）が完了し、文字入力が止まって0.15秒後に自動実行
+            scanTimer = setTimeout(() => {
+                if (searchinput.value.trim() !== "") {
+                    executesearch();
+                }
+            }, 150);
         });
 
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
@@ -1694,12 +1649,13 @@
         });
 
         clearbtn.addEventListener('click', () => {
+            if (scanTimer) clearTimeout(scanTimer);
             clearInputs();
             rendermain("");
             focussearchinput();
         });
 
-        // ★スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
+        // スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -1724,10 +1680,8 @@
 
         // 初期化処理
         updateSummary();
-        renderLatestLogs(); // ★ 初期表示時に最新3件ログを更新
         rendermain("");
         
-        // ★起動時および管理画面からの復帰時に自動的にチェックON＆フォーカス
         autotogglecheck.checked = true;
         updateInputVisibility();
         focussearchinput();
