@@ -212,7 +212,6 @@
         .btn-red:hover { background-color: #b91c1c; }
         .btn-full { width: 100%; }
 
-        /* スタイリッシュなクリアボタン用スタイル */
         .btn-clear-stylish {
             background-color: #f3f4f6;
             color: #374151;
@@ -510,7 +509,7 @@
                         </div>
                     </div>
 
-                    <!-- 集計 ＆ ★直近3件の受付表示パネル -->
+                    <!-- 集計 ＆ 直近3件の受付表示パネル -->
                     <div class="panel" style="background-color: #f0fdf4; border-color: #86efac; flex-grow: 1; display: flex; flex-direction: column;">
                         <h2>📊 貸出枚数カウント</h2>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px; margin-top: 4px;">
@@ -525,7 +524,7 @@
                         </div>
                         <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white; margin-bottom: 8px; padding: 9px 12px; font-size: 12px;">🔴 貸出中メンバーだけを表示</button>
 
-                        <!-- ★ 直近3件の受付履歴表示エリア -->
+                        <!-- 直近3件の受付履歴表示エリア -->
                         <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
                             <div style="font-size: 10px; font-weight: bold; color: var(--text-gray); margin-bottom: 4px;">
                                 📜 直近の受付 (最新3件)
@@ -773,7 +772,7 @@
         // 1行まとめ履歴（30日保持データ）
         let fullHistoryLogs = JSON.parse(localStorage.getItem(storage_key + '_full_history_logs')) || [];
 
-        // ★ ホーム画面左下にリアルタイム表示する最新3件用配列
+        // ホーム画面左下にリアルタイム表示する最新3件用配列
         let latestThreeLogs = JSON.parse(localStorage.getItem(storage_key + '_latest_three_logs')) || [];
 
         let showOnlyBorrowed = false;
@@ -842,12 +841,14 @@
         let historyFilterOnlyBorrowed = false;
         let lasttoggletime = 0;
 
-        // 全角英数字記号を半角に自動変換する関数
+        // 全角英数字記号を半角に自動変換＆不要な制御文字（改行・スペース）の除去
         function toHalfWidth(str) {
             if (!str) return "";
-            return str.replace(/[!-~]/g, function(s) {
+            let res = str.replace(/[!-~]/g, function(s) {
                 return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
             }).replace(/”/g, '"').replace(/’/g, "'").replace(/　/g, " ");
+            // 改行コードやタブを除去
+            return res.replace(/[\r\n\t]/g, "").trim();
         }
 
         autotogglecheck.addEventListener('change', () => {
@@ -925,7 +926,7 @@
 
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
 
-            // ★ 左下パネル用の最新3件ログ追加＆保存
+            // 左下パネル用の最新3件ログ追加＆保存
             const shortTime = timeStr.substring(5); // MM/DD HH:mm
             latestThreeLogs.unshift({
                 time: shortTime,
@@ -937,11 +938,10 @@
             }
             localStorage.setItem(storage_key + '_latest_three_logs', JSON.stringify(latestThreeLogs));
 
-            // ★ 左下パネル描画更新
             renderLatestLogs();
         }
 
-        // ★ ホーム画面左下「直近3件」のレンダリング関数
+        // ホーム画面左下「直近3件」のレンダリング関数
         function renderLatestLogs() {
             if (!latestLogContainer) return;
             latestLogContainer.innerHTML = "";
@@ -1289,78 +1289,97 @@
 
         function getSearchKeyword() {
             if (!autotogglecheck.checked) {
-                const nameVal = manualnamesearch.value.trim();
-                const idVal = manualidsearch.value.trim();
+                const nameVal = manualnamesearch.value;
+                const idVal = manualidsearch.value;
                 return nameVal || idVal || "";
             }
-            return searchinput.value.trim();
+            return searchinput.value;
         }
 
+        // ★★★ 検索・スキャン自動実行ロジック（不具合修正箇所） ★★★
         function executesearch() {
-            if (scanTimer) clearTimeout(scanTimer); // タイマーをリセット
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
 
             const rawKeyword = getSearchKeyword();
-            const keyword = toHalfWidth(rawKeyword).trim().toLowerCase();
+            const keyword = toHalfWidth(rawKeyword).toLowerCase();
 
             if (!keyword) return;
 
-            const filtered = employees.filter(emp => {
-                const idHalf = toHalfWidth(emp.id).toLowerCase();
-                const cardHalf = toHalfWidth(emp.card).toLowerCase();
-                const adminidHalf = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
-                const nameLower = emp.name.toLowerCase();
+            // スキャンモード時（QRコード持っている場合）
+            if (autotogglecheck.checked) {
+                // ① まずは完全一致（社員番号、カード番号、管理番号）を探す
+                let targetemp = employees.find(emp => {
+                    const id = toHalfWidth(emp.id).toLowerCase();
+                    const card = toHalfWidth(emp.card).toLowerCase();
+                    const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                    return id === keyword || card === keyword || adminid === keyword;
+                });
 
-                return idHalf.includes(keyword) ||
-                       nameLower.includes(keyword) ||
-                       cardHalf.includes(keyword) ||
-                       adminidHalf.includes(keyword);
-            });
+                // ② 完全一致しない場合は部分一致で絞り込み
+                if (!targetemp) {
+                    const filtered = employees.filter(emp => {
+                        const id = toHalfWidth(emp.id).toLowerCase();
+                        const card = toHalfWidth(emp.card).toLowerCase();
+                        const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                        const name = emp.name.toLowerCase();
+                        return id.includes(keyword) || card.includes(keyword) || adminid.includes(keyword) || name.includes(keyword);
+                    });
+                    if (filtered.length === 1) {
+                        targetemp = filtered[0];
+                    }
+                }
 
-            if (autotogglecheck.checked && keyword !== "" && filtered.length === 1) {
-                const now = Date.now();
-                if (now - lasttoggletime < 1000) {
-                    clearInputs();
+                // 該当社員が特定できたら即座に貸出/返却トグル実行
+                if (targetemp) {
+                    const now = Date.now();
+                    if (now - lasttoggletime < 800) {
+                        clearInputs();
+                        return;
+                    }
+                    lasttoggletime = now;
+
+                    const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
+                    const nowtime = getformatteddatetime();
+
+                    if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
+                        employees = employees.map(emp => {
+                            if (emp.id === targetemp.id) {
+                                const updated = { ...emp, status: newstatus };
+                                if (newstatus === 'borrowed') {
+                                    updated.lastborrowedtime = nowtime;
+                                } else {
+                                    updated.lastreturnedtime = nowtime;
+                                }
+                                return updated;
+                            }
+                            return emp;
+                        });
+                        savetostorage();
+                        sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+                        
+                        addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+                        
+                        const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+                        showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+                        clearInputs();
+                        rendermain("");
+                        focussearchinput();
+                    } else {
+                        pendingBorrowEmployee = targetemp;
+                        borrowmessage.innerHTML = `
+                            <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
+                        `;
+                        borrowmodal.classList.remove('hidden');
+                        clearInputs();
+                    }
                     return;
                 }
-                lasttoggletime = now;
-                const targetemp = filtered[0];
-                const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
-                const nowtime = getformatteddatetime();
-
-                if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
-                    employees = employees.map(emp => {
-                        if (emp.id === targetemp.id) {
-                            const updated = { ...emp, status: newstatus };
-                            if (newstatus === 'borrowed') {
-                                updated.lastborrowedtime = nowtime;
-                            } else {
-                                updated.lastreturnedtime = nowtime;
-                            }
-                            return updated;
-                        }
-                        return emp;
-                    });
-                    savetostorage();
-                    sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-                    
-                    // ★ ログ蓄積＆左下直近3件更新
-                    addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-                    
-                    const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
-                    showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-                    clearInputs();
-                    rendermain("");
-                    focussearchinput();
-                } else {
-                    pendingBorrowEmployee = targetemp;
-                    borrowmessage.innerHTML = `
-                        <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
-                    `;
-                    borrowmodal.classList.remove('hidden');
-                    clearInputs();
-                }
-                return;
             }
+
+            // 手入力時や特定不能時は一覧の描画
             rendermain(rawKeyword);
         }
 
@@ -1372,7 +1391,7 @@
 
         function rendermain(filterkeyword = "") {
             employeelist.innerHTML = "";
-            const keyword = toHalfWidth(filterkeyword.trim()).toLowerCase();
+            const keyword = toHalfWidth(filterkeyword).toLowerCase();
 
             let filtered = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
@@ -1464,7 +1483,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1481,11 +1499,11 @@
 
         registerform.addEventListener('submit', function(e) {
             e.preventDefault();
-            const id = toHalfWidth(regid.value.trim());
+            const id = toHalfWidth(regid.value);
             const name = regname.value.trim();
-            const card = toHalfWidth(regcard.value.trim());
+            const card = toHalfWidth(regcard.value);
             const dept = document.getElementById('regdept').value;
-            const adminid = toHalfWidth(document.getElementById('regadminid').value.trim());
+            const adminid = toHalfWidth(document.getElementById('regadminid').value);
 
             if (employees.some(emp => emp.id === id)) {
                 showerror(`社員番号 [${id}] は既に登録されています。`);
@@ -1534,11 +1552,11 @@
         editform.addEventListener('submit', function(e) {
             e.preventDefault();
             const oldId = editoldid.value;
-            const newId = toHalfWidth(editid.value.trim());
+            const newId = toHalfWidth(editid.value);
             const newName = editname.value.trim();
-            const newCard = toHalfWidth(editcard.value.trim());
+            const newCard = toHalfWidth(editcard.value);
             const newDept = editdept.value;
-            const newAdminId = toHalfWidth(editadminid.value.trim());
+            const newAdminId = toHalfWidth(editadminid.value);
 
             if (employees.some(emp => emp.id === newId && emp.id !== oldId)) {
                 showerror(`社員番号 [${newId}] は既に別の社員で登録されています。`);
@@ -1667,7 +1685,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, '貸出');
                 
                 showtoast(`「${targetemp.name}」さんのステータスを 🔴 貸出中 に変更しました`);
@@ -1683,21 +1700,23 @@
             focussearchinput();
         });
 
-        // ★ スキャン漏れ防止ガード（タイマー自動確定処理）
+        // ★ スキャン文字入力検知（タイマー判定）
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
             if (scanTimer) clearTimeout(scanTimer);
             
+            // スキャン完了（入力停止後0.12秒）で即実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
                 }
-            }, 150);
+            }, 120);
         });
 
+        // キーボードのEnterキー検知
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
-            inputEl.addEventListener('keypress', (e) => {
+            inputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === 'enter') {
                     e.preventDefault();
                     executesearch();
@@ -1717,13 +1736,12 @@
             focussearchinput();
         });
 
-        // スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
+        // どこを押しても自動でフォーカスをスキャン枠へ合わせる（モーダル等非表示時）
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
+                // 通常の1文字入力（アルファベット、数字等）かつカーソルが入力枠にない場合
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     searchinput.focus();
-                    searchinput.value += e.key;
-                    e.preventDefault();
                 }
             }
         });
@@ -1742,7 +1760,7 @@
 
         // 初期化処理
         updateSummary();
-        renderLatestLogs(); // ★ 初期表示時に最新3件ログを更新描画
+        renderLatestLogs();
         rendermain("");
         
         autotogglecheck.checked = true;
