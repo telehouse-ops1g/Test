@@ -78,7 +78,6 @@
             }
         }
         
-        /* ★ サイドバーをスワイプ不要で固定表示用スタイル ★ */
         .sidebar {
             display: flex;
             flex-direction: column;
@@ -183,7 +182,6 @@
             padding-left: 21px;
         }
         
-        /* ★ ボタンサイズを拡大して押しやすく改修 ★ */
         .btn-group {
             display: flex;
             gap: 8px;
@@ -217,9 +215,9 @@
 
         .btn-clear-stylish {
             background-color: #f3f4f6;
-            color: #4b5563;
+            color: #374151;
             border: 1px solid #d1d5db;
-            padding: 9px 14px;
+            padding: 8px 12px;
             font-size: 12px;
             font-weight: 700;
             border-radius: 6px;
@@ -229,6 +227,7 @@
             align-items: center;
             gap: 4px;
             white-space: nowrap;
+            touch-action: manipulation;
         }
         .btn-clear-stylish:hover {
             background-color: #e5e7eb;
@@ -236,7 +235,8 @@
             border-color: #9ca3af;
         }
         .btn-clear-stylish:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
+            background-color: #d1d5db;
         }
 
         .result-panel {
@@ -391,7 +391,7 @@
             display: none !important;
         }
 
-        /* ★ 特大トースト通知スタイル ★ */
+        /* 特大トースト通知スタイル */
         .toast-container {
             position: fixed;
             top: 30px;
@@ -510,7 +510,7 @@
                         </div>
                     </div>
 
-                    <!-- 集計 ＆ ★直近3件の受付表示パネル -->
+                    <!-- 集計 ＆ 直近3件の受付表示パネル -->
                     <div class="panel" style="background-color: #f0fdf4; border-color: #86efac; flex-grow: 1; display: flex; flex-direction: column;">
                         <h2>📊 貸出枚数カウント</h2>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px; margin-top: 4px;">
@@ -525,7 +525,7 @@
                         </div>
                         <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white; margin-bottom: 8px; padding: 9px 12px; font-size: 12px;">🔴 貸出中メンバーだけを表示</button>
 
-                        <!-- ★ 直近3件の受付履歴表示エリア -->
+                        <!-- 直近3件の受付履歴表示エリア -->
                         <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
                             <div style="font-size: 10px; font-weight: bold; color: var(--text-gray); margin-bottom: 4px;">
                                 📜 直近の受付 (最新3件)
@@ -617,7 +617,7 @@
         </div>
     </div>
 
-    <!-- ★受付履歴モーダル -->
+    <!-- 受付履歴モーダル -->
     <div id="historymodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
         <div style="background: white; padding: 24px; border-radius: 12px; max-width: 900px; width: 100%; height: 85vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
@@ -632,7 +632,7 @@
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <input type="date" id="history-date-input" class="input-text" style="padding: 8px 10px; font-size: 12px; cursor: pointer; width: auto;">
                     <button id="history-date-clear-btn" class="btn-clear-stylish" title="検索条件をクリア">
-                        <span>🔄 クリア</span>
+                        <span>🔄 条件をクリア</span>
                     </button>
                 </div>
 
@@ -769,14 +769,17 @@
         ];
         let employeetodeleteid = null;
 
-        // ★ 1行まとめ履歴（30日保持データ）
+        // 1行まとめ履歴（30日保持データ）
         let fullHistoryLogs = JSON.parse(localStorage.getItem(storage_key + '_full_history_logs')) || [];
 
-        // ★ ホーム画面左下にリアルタイム表示する最新3件用配列
+        // ホーム画面左下にリアルタイム表示する最新3件用配列
         let latestThreeLogs = JSON.parse(localStorage.getItem(storage_key + '_latest_three_logs')) || [];
 
         let showOnlyBorrowed = false;
         let pendingBorrowEmployee = null;
+
+        // ★ 自動実行用タイマー変数
+        let scanTimer = null;
 
         const mainview = document.getElementById('mainview');
         const adminview = document.getElementById('adminview');
@@ -838,7 +841,7 @@
         let historyFilterOnlyBorrowed = false;
         let lasttoggletime = 0;
 
-        // ★ 全角英数字記号を半角に自動変換する関数
+        // 全角英数字記号を半角に自動変換する関数
         function toHalfWidth(str) {
             if (!str) return "";
             return str.replace(/[!-~]/g, function(s) {
@@ -876,9 +879,6 @@
             updateSummary();
         }
 
-        // =======================================================
-        // 蓄積履歴の管理処理（1セット＝1行）＆左下直近3件更新
-        // =======================================================
         function addFullHistory(emp, action) {
             const now = new Date();
             const timeStr = getformatteddatetime();
@@ -915,14 +915,12 @@
                 }
             }
 
-            // 過去30日より古いデータを自動削除
             const thirtyDaysAgo = timestamp - (30 * 24 * 60 * 60 * 1000);
             fullHistoryLogs = fullHistoryLogs.filter(item => !item.timestamp || item.timestamp > thirtyDaysAgo);
 
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
 
-            // ★ 左下パネル用の最新3件ログ追加＆保存
-            const shortTime = timeStr.substring(5); // MM/DD HH:mm
+            const shortTime = timeStr.substring(5);
             latestThreeLogs.unshift({
                 time: shortTime,
                 name: emp.name,
@@ -933,11 +931,9 @@
             }
             localStorage.setItem(storage_key + '_latest_three_logs', JSON.stringify(latestThreeLogs));
 
-            // ★ 左下パネル描画更新
             renderLatestLogs();
         }
 
-        // ★ ホーム画面左下「直近3件」のレンダリング関数
         function renderLatestLogs() {
             if (!latestLogContainer) return;
             latestLogContainer.innerHTML = "";
@@ -969,7 +965,6 @@
             });
         }
 
-        // ★ 履歴画面の描画処理（カード番号列表示版）
         function renderHistoryTable() {
             historyTableBody.innerHTML = "";
             const rawKeyword = historySearchInput.value.trim();
@@ -1104,7 +1099,6 @@
             }
         }
 
-        // ★ 特大トースト通知関数 ★
         function showtoast(message, issuccess = true) {
             const toast = document.createElement('div');
             toast.className = `toast ${issuccess ? 'toast-success' : 'toast-error'}`;
@@ -1294,8 +1288,12 @@
         }
 
         function executesearch() {
+            if (scanTimer) clearTimeout(scanTimer); // タイマーをリセット
+
             const rawKeyword = getSearchKeyword();
             const keyword = toHalfWidth(rawKeyword).trim().toLowerCase();
+
+            if (!keyword) return;
 
             const filtered = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
@@ -1336,7 +1334,6 @@
                     savetostorage();
                     sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
-                    // ★ ログ蓄積＆左下直近3件更新
                     addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
                     const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1457,7 +1454,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1568,7 +1564,6 @@
         // イベントリスナー
         // =======================================================
         
-        // 履歴モーダルイベント
         openHistoryBtn.addEventListener('click', () => {
             renderHistoryTable();
             historymodal.classList.remove('hidden');
@@ -1583,12 +1578,10 @@
             renderHistoryTable();
         });
 
-        // カレンダーピッカー入力・クリアイベント
         historyDateInput.addEventListener('change', () => {
             renderHistoryTable();
         });
 
-        // ★「クリア」ボタンタップ時：日付と氏名検索枠をまとめてクリア＆全件再描画
         historyDateClearBtn.addEventListener('click', () => {
             historyDateInput.value = "";
             historySearchInput.value = "";
@@ -1663,7 +1656,6 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
-                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, '貸出');
                 
                 showtoast(`「${targetemp.name}」さんのステータスを 🔴 貸出中 に変更しました`);
@@ -1677,6 +1669,21 @@
             borrowmodal.classList.add('hidden');
             pendingBorrowEmployee = null;
             focussearchinput();
+        });
+
+        // ★★★ スキャン漏れ防止ガード（タイマー自動確定処理） ★★★
+        searchinput.addEventListener('input', () => {
+            if (!autotogglecheck.checked) return;
+            
+            // 入力が入るたびにタイマーをリセット
+            if (scanTimer) clearTimeout(scanTimer);
+            
+            // 高速な連続入力（スキャン）が完了し、文字入力が止まって0.15秒後に自動実行
+            scanTimer = setTimeout(() => {
+                if (searchinput.value.trim() !== "") {
+                    executesearch();
+                }
+            }, 150);
         });
 
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
@@ -1694,12 +1701,13 @@
         });
 
         clearbtn.addEventListener('click', () => {
+            if (scanTimer) clearTimeout(scanTimer);
             clearInputs();
             rendermain("");
             focussearchinput();
         });
 
-        // ★スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
+        // スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -1724,10 +1732,9 @@
 
         // 初期化処理
         updateSummary();
-        renderLatestLogs(); // ★ 初期表示時に最新3件ログを更新
+        renderLatestLogs();
         rendermain("");
         
-        // ★起動時および管理画面からの復帰時に自動的にチェックON＆フォーカス
         autotogglecheck.checked = true;
         updateInputVisibility();
         focussearchinput();
