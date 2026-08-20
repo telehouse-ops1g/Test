@@ -217,7 +217,7 @@
             background-color: #f3f4f6;
             color: #374151;
             border: 1px solid #d1d5db;
-            padding: 8px 14px;
+            padding: 8px 12px;
             font-size: 12px;
             font-weight: 700;
             border-radius: 6px;
@@ -510,21 +510,30 @@
                         </div>
                     </div>
 
-                    <!-- 集計パネル -->
-                    <div class="panel" style="background-color: #f0fdf4; border-color: #86efac;">
+                    <!-- 集計 ＆ ★直近3件の受付表示パネル -->
+                    <div class="panel" style="background-color: #f0fdf4; border-color: #86efac; flex-grow: 1; display: flex; flex-direction: column;">
                         <h2>📊 貸出枚数カウント</h2>
-                        <p>本日および現在のカード貸出状況です。</p>
-                        <div style="display: flex; gap: 8px; margin-bottom: 12px; margin-top: 8px;">
-                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-gray); font-weight: bold;">現在貸出中</div>
-                                <div id="summary-borrowed-count" style="font-size: 24px; font-weight: bold; color: #dc2626; margin-top: 2px;">0</div>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px; margin-top: 4px;">
+                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">現在貸出中</div>
+                                <div id="summary-borrowed-count" style="font-size: 20px; font-weight: bold; color: #dc2626; margin-top: 1px;">0</div>
                             </div>
-                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 10px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-gray); font-weight: bold;">本日貸出数</div>
-                                <div id="summary-today-count" style="font-size: 24px; font-weight: bold; color: #16a34a; margin-top: 2px;">0</div>
+                            <div style="flex: 1; background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 8px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-gray); font-weight: bold;">本日貸出数</div>
+                                <div id="summary-today-count" style="font-size: 20px; font-weight: bold; color: #16a34a; margin-top: 1px;">0</div>
                             </div>
                         </div>
-                        <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white;">🔴 貸出中メンバーだけを表示</button>
+                        <button id="filter-borrowed-btn" class="btn btn-full" style="background-color: #16a34a; color: white; margin-bottom: 8px; padding: 9px 12px; font-size: 12px;">🔴 貸出中メンバーだけを表示</button>
+
+                        <!-- ★ 直近3件の受付履歴表示エリア -->
+                        <div style="border-top: 1px dashed #bbf7d0; padding-top: 6px; flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+                            <div style="font-size: 10px; font-weight: bold; color: var(--text-gray); margin-bottom: 4px;">
+                                📜 直近の受付 (最新3件)
+                            </div>
+                            <div id="latest-log-container" style="background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 4px 8px; font-size: 10px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="text-align: center; color: var(--text-light); padding: 8px 0;">受付履歴はありません</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -764,10 +773,13 @@
         // 1行まとめ履歴（30日保持データ）
         let fullHistoryLogs = JSON.parse(localStorage.getItem(storage_key + '_full_history_logs')) || [];
 
+        // ★ ホーム画面左下にリアルタイム表示する最新3件用配列
+        let latestThreeLogs = JSON.parse(localStorage.getItem(storage_key + '_latest_three_logs')) || [];
+
         let showOnlyBorrowed = false;
         let pendingBorrowEmployee = null;
 
-        // ★ 自動実行用タイマー変数
+        // 自動実行用タイマー変数
         let scanTimer = null;
 
         const mainview = document.getElementById('mainview');
@@ -800,6 +812,7 @@
         const summaryBorrowedCount = document.getElementById('summary-borrowed-count');
         const summaryTodayCount = document.getElementById('summary-today-count');
         const filterBorrowedBtn = document.getElementById('filter-borrowed-btn');
+        const latestLogContainer = document.getElementById('latest-log-container');
 
         const editmodal = document.getElementById('editmodal');
         const editform = document.getElementById('editform');
@@ -868,7 +881,7 @@
         }
 
         // =======================================================
-        // 蓄積履歴の管理処理（1セット＝1行）
+        // 蓄積履歴の管理処理（1セット＝1行）＆左下直近3件更新
         // =======================================================
         function addFullHistory(emp, action) {
             const now = new Date();
@@ -911,6 +924,53 @@
             fullHistoryLogs = fullHistoryLogs.filter(item => !item.timestamp || item.timestamp > thirtyDaysAgo);
 
             localStorage.setItem(storage_key + '_full_history_logs', JSON.stringify(fullHistoryLogs));
+
+            // ★ 左下パネル用の最新3件ログ追加＆保存
+            const shortTime = timeStr.substring(5); // MM/DD HH:mm
+            latestThreeLogs.unshift({
+                time: shortTime,
+                name: emp.name,
+                action: action
+            });
+            if (latestThreeLogs.length > 3) {
+                latestThreeLogs.pop();
+            }
+            localStorage.setItem(storage_key + '_latest_three_logs', JSON.stringify(latestThreeLogs));
+
+            // ★ 左下パネル描画更新
+            renderLatestLogs();
+        }
+
+        // ★ ホーム画面左下「直近3件」のレンダリング関数
+        function renderLatestLogs() {
+            if (!latestLogContainer) return;
+            latestLogContainer.innerHTML = "";
+
+            if (latestThreeLogs.length === 0) {
+                latestLogContainer.innerHTML = `<div style="text-align: center; color: var(--text-light); padding: 8px 0;">受付履歴はありません</div>`;
+                return;
+            }
+
+            latestThreeLogs.forEach(log => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.alignItems = 'center';
+                row.style.padding = '3px 0';
+                row.style.borderBottom = '1px dashed var(--border-color)';
+
+                const isBorrow = log.action === "貸出";
+                const badge = isBorrow 
+                    ? `<span style="color: #dc2626; font-weight: bold;">[貸出]</span>` 
+                    : `<span style="color: #16a34a; font-weight: bold;">[返却]</span>`;
+
+                row.innerHTML = `
+                    <span style="color: var(--text-gray); font-family: monospace;">${log.time}</span>
+                    <span style="font-weight: bold; flex-grow: 1; margin: 0 5px; color: var(--text-dark); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.name}</span>
+                    <span>${badge}</span>
+                `;
+                latestLogContainer.appendChild(row);
+            });
         }
 
         // 履歴画面の描画処理
@@ -1213,6 +1273,7 @@
                             }
                             savetostorage();
                             renderadmin();
+                            renderLatestLogs();
                             showtoast("データを正常に復元しました。");
                         }
                     } else {
@@ -1282,6 +1343,7 @@
                     savetostorage();
                     sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
+                    // ★ ログ蓄積＆左下直近3件更新
                     addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                     
                     const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1402,6 +1464,7 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                 
+                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
 
                 const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
@@ -1604,6 +1667,7 @@
                 rendermain(getSearchKeyword());
                 sendtospreadsheet(targetemp, '貸出');
                 
+                // ★ ログ蓄積＆左下直近3件更新
                 addFullHistory(targetemp, '貸出');
                 
                 showtoast(`「${targetemp.name}」さんのステータスを 🔴 貸出中 に変更しました`);
@@ -1619,14 +1683,12 @@
             focussearchinput();
         });
 
-        // ★★★ スキャン漏れ防止ガード（タイマー自動確定処理） ★★★
+        // ★ スキャン漏れ防止ガード（タイマー自動確定処理）
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
-            // 入力が入るたびにタイマーをリセット
             if (scanTimer) clearTimeout(scanTimer);
             
-            // 高速な連続入力（スキャン）が完了し、文字入力が止まって0.15秒後に自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
@@ -1680,6 +1742,7 @@
 
         // 初期化処理
         updateSummary();
+        renderLatestLogs(); // ★ 初期表示時に最新3件ログを更新描画
         rendermain("");
         
         autotogglecheck.checked = true;
