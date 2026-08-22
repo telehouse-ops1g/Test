@@ -765,7 +765,7 @@
         const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
 
         // スキャン後のディレイ時間（ミリ秒指定: 2000 = 2.0秒）
-        const scanDelayMs = 2000;
+        const scanDelayMs = 1000;
 
         let employees = JSON.parse(localStorage.getItem(storage_key)) || [
             { id: "P999999", name: "多摩 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
