@@ -1291,7 +1291,7 @@
             return searchinput.value;
         }
 
-        // ★★★ 検索・スキャン自動実行ロジック（スキャン/手入力共通で完全一致優先） ★★★
+        // ★★★ 検索・スキャン自動実行ロジック（フライング・巻き込み防止完全版） ★★★
         function executesearch() {
             if (scanTimer) {
                 clearTimeout(scanTimer);
@@ -1303,16 +1303,17 @@
 
             if (!keyword) return;
 
-            // ① スキャン・手入力問わず、社員番号・カード番号・管理番号が『完全一致（===）』する社員をピンポイント検索
-            const targetemp = employees.find(emp => {
-                const id = toHalfWidth(emp.id).toLowerCase();
-                const card = toHalfWidth(emp.card).toLowerCase();
-                const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
-                return id === keyword || card === keyword || adminid === keyword;
-            });
-
-            // ② スキャンモード（QRあり）の時
+            // スキャンモード時（QRコードを持っている設定）
             if (autotogglecheck.checked) {
+                // ① 入力された文字列と「完全一致（===）」する社員1人だけを検索
+                const targetemp = employees.find(emp => {
+                    const id = toHalfWidth(emp.id).toLowerCase();
+                    const card = toHalfWidth(emp.card).toLowerCase();
+                    const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                    return id === keyword || card === keyword || adminid === keyword;
+                });
+
+                // ② 完全一致した社員（今回の場合は P459376 の関さん）が存在する場合のみトグル実行
                 if (targetemp) {
                     const now = Date.now();
                     if (now - lasttoggletime < 1000) {
@@ -1345,7 +1346,7 @@
                         const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                         showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
                         clearInputs();
-                        rendermain(""); // 確定後は画面右側の一覧を初期リセット
+                        rendermain(""); // 処理完了後は画面右側の一覧をリセット
                         focussearchinput();
                     } else {
                         pendingBorrowEmployee = targetemp;
@@ -1357,13 +1358,12 @@
                     }
                     return;
                 } else {
-                    // スキャンモードで完全一致しない場合、曖昧検索での表示や誤動作を防ぐため入力欄を空にして終了
-                    clearInputs();
+                    // ★【重要】完全一致しない（スキャン途中など）場合は、画面右側に候補（2人など）を表示せず、入力完了を待つ
                     return;
                 }
             }
 
-            // ③ 手入力モード（QRなし）時
+            // 手入力モード（☑を外した時）のみ全件/絞り込み表示
             rendermain(rawKeyword);
         }
 
