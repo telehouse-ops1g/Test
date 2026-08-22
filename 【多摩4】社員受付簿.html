@@ -464,7 +464,7 @@
         <!-- メイン画面 -->
         <div id="mainview">
             <div class="header">
-                <h1>👤 社員検索・カード貸出ステータス　Ver1.2</h1>
+                <h1>👤 社員検索・カード貸出ステータス　Ver1.1</h1>
                 <div class="header-btn-group">
                     <button id="open-history-btn" class="btn btn-gray-dark">📜 貸出・返却履歴</button>
                     <button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 管理画面</button>
@@ -706,7 +706,7 @@
     </div>
 
     <div id="editmodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
-        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
+        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;">
             <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📝 社員情報の編集</h3>
             <form id="editform">
                 <input type="hidden" id="editoldid">
@@ -844,10 +844,10 @@
         let historyFilterOnlyBorrowed = false;
         let lasttoggletime = 0;
 
-        // 全角英数字記号を半角に自動変換＆不要な制御文字（改行・スペース）の除去
+        // ★★★ 修正箇所：全角英数字(FF01-FF5E)を半角(21-7E)に自動変換する正しいロジック ★★★
         function toHalfWidth(str) {
             if (!str) return "";
-            let res = str.replace(/[!-~]/g, function(s) {
+            let res = str.replace(/[！-～]/g, function(s) {
                 return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
             }).replace(/”/g, '"').replace(/’/g, "'").replace(/　/g, " ");
             return res.replace(/[\r\n\t]/g, "").trim();
@@ -1284,14 +1284,14 @@
 
         function getSearchKeyword() {
             if (!autotogglecheck.checked) {
-                const nameVal = manualnamesearch.value;
-                const idVal = manualidsearch.value;
-                return nameVal || idVal || "";
+                const idVal = manualidsearch.value ? manualidsearch.value.trim() : "";
+                const nameVal = manualnamesearch.value ? manualnamesearch.value.trim() : "";
+                return idVal || nameVal || "";
             }
-            return searchinput.value;
+            return searchinput.value ? searchinput.value.trim() : "";
         }
 
-        // ★★★ 検索・スキャン自動実行ロジック（フライング・巻き込み防止完全版） ★★★
+        // ★★★ 検索・スキャン自動実行ロジック ★★★
         function executesearch() {
             if (scanTimer) {
                 clearTimeout(scanTimer);
@@ -1303,17 +1303,16 @@
 
             if (!keyword) return;
 
-            // スキャンモード時（QRコードを持っている設定）
-            if (autotogglecheck.checked) {
-                // ① 入力された文字列と「完全一致（===）」する社員1人だけを検索
-                const targetemp = employees.find(emp => {
-                    const id = toHalfWidth(emp.id).toLowerCase();
-                    const card = toHalfWidth(emp.card).toLowerCase();
-                    const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
-                    return id === keyword || card === keyword || adminid === keyword;
-                });
+            // ★100% 固有の「社員番号(id)」「カード番号」「管理番号」の『完全一致（===）』でピンポイント検索
+            const targetemp = employees.find(emp => {
+                const id = toHalfWidth(emp.id).toLowerCase();
+                const card = toHalfWidth(emp.card).toLowerCase();
+                const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                return id === keyword || card === keyword || adminid === keyword;
+            });
 
-                // ② 完全一致した社員（今回の場合は P459376 の関さん）が存在する場合のみトグル実行
+            // ② スキャンモード（QRあり）の時
+            if (autotogglecheck.checked) {
                 if (targetemp) {
                     const now = Date.now();
                     if (now - lasttoggletime < 1000) {
@@ -1322,12 +1321,13 @@
                     }
                     lasttoggletime = now;
 
+                    const targetEmpId = targetemp.id; // ★対象社員のIDを確実に保持
                     const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
                     const nowtime = getformatteddatetime();
 
                     if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
                         employees = employees.map(emp => {
-                            if (emp.id === targetemp.id) {
+                            if (emp.id === targetEmpId) { // ★IDで完全特定して更新
                                 const updated = { ...emp, status: newstatus };
                                 if (newstatus === 'borrowed') {
                                     updated.lastborrowedtime = nowtime;
@@ -1338,15 +1338,17 @@
                             }
                             return emp;
                         });
+                        
                         savetostorage();
                         sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-                        
                         addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
                         
                         const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+                        // ★通知表示も確実に対象本人(targetemp.name)を表示
                         showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+                        
                         clearInputs();
-                        rendermain(""); // 処理完了後は画面右側の一覧をリセット
+                        rendermain(""); // 右側の一覧をクリア状態に初期化
                         focussearchinput();
                     } else {
                         pendingBorrowEmployee = targetemp;
@@ -1358,12 +1360,13 @@
                     }
                     return;
                 } else {
-                    // ★【重要】完全一致しない（スキャン途中など）場合は、画面右側に候補（2人など）を表示せず、入力完了を待つ
+                    // スキャンモードで完全一致しない場合は画面を一切曖昧描画せずクリアして終了
+                    clearInputs();
                     return;
                 }
             }
 
-            // 手入力モード（☑を外した時）のみ全件/絞り込み表示
+            // ③ 手入力モード（QRなし）時
             rendermain(rawKeyword);
         }
 
@@ -1373,7 +1376,7 @@
             manualidsearch.value = "";
         }
 
-        // 画面右側の一覧表示ロジック（手入力時も完全一致があれば1人だけ表示）
+        // 画面右側の一覧表示ロジック（手入力検索時も完全一致を最優先）
         function rendermain(filterkeyword = "") {
             employeelist.innerHTML = "";
             const keyword = toHalfWidth(filterkeyword).toLowerCase();
@@ -1385,7 +1388,7 @@
                 return;
             }
 
-            // 手入力時もまず「完全一致（===）」を探し、ヒットすれば1人だけ表示
+            // ★完全一致（===）する社員を最優先検索（巻き込み防止）
             let exactMatches = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
                 const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1395,9 +1398,10 @@
 
             let filtered = [];
             if (exactMatches.length > 0) {
+                // 完全一致する社員がいればその1人のみを表示
                 filtered = exactMatches;
             } else {
-                // 完全一致がない場合（氏名の部分入力など）のみ部分一致で絞り込み
+                // 完全一致がない場合（氏名の部分入力時など）のみ部分一致で絞り込み
                 filtered = employees.filter(emp => {
                     const idHalf = toHalfWidth(emp.id).toLowerCase();
                     const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1711,17 +1715,15 @@
             focussearchinput();
         });
 
-        // ★★★ スキャン文字入力検知（ディレイタイマー処理: scanDelayMs 秒待ってから実行） ★★★
+        // ★★★ スキャン文字入力検知（ディレイタイマー処理） ★★★
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
-            // 入力が入るたびに既存タイマーをクリアしてリセット
             if (scanTimer) {
                 clearTimeout(scanTimer);
                 scanTimer = null;
             }
             
-            // スキャナー入力が停止してから scanDelayMs (2.0秒) 待って自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
@@ -1729,10 +1731,10 @@
             }, scanDelayMs);
         });
 
-        // ★★★ スキャン欄（searchinput）では Enterキーによる即時確定を強制ブロック（ディレイタイマーに一任する） ★★★
+        // スキャン欄（searchinput）では Enterキーでの即時実行を拒否（ディレイタイマーに一任）
         searchinput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === 'enter') {
-                e.preventDefault(); // スキャナー末尾のEnterで即時実行されるのを阻止！
+                e.preventDefault();
             }
         });
 
