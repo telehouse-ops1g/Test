@@ -464,7 +464,7 @@
         <!-- メイン画面 -->
         <div id="mainview">
             <div class="header">
-                <h1>👤 社員検索・カード貸出ステータス　Ver1.2</h1>
+                <h1>👤 社員検索・カード貸出ステータス　Ver1.1</h1>
                 <div class="header-btn-group">
                     <button id="open-history-btn" class="btn btn-gray-dark">📜 貸出・返却履歴</button>
                     <button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 管理画面</button>
@@ -551,7 +551,7 @@
         <div id="adminview" class="hidden">
             <div class="header" style="border-bottom: 2px solid #fca5a5;">
                 <h1 style="color: #b91c1c;">⚙️ 社員情報 管理画面</h1>
-                <button onclick="switchview('main')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button>
+                <button onclick="switchview('admin')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button>
             </div>
             <div class="grid-layout">
                 <div class="sidebar">
@@ -1308,7 +1308,7 @@
                 return id === keyword || card === keyword || adminid === keyword;
             });
 
-            // ② スキャンモード（QRあり）の時、完全一致すれば即座に自動ステータス切り替え
+            // ② スキャンモード（QRあり）の時
             if (autotogglecheck.checked) {
                 if (targetemp) {
                     const now = Date.now();
@@ -1342,7 +1342,7 @@
                         const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                         showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
                         clearInputs();
-                        rendermain(""); // 確定後は画面右側の一覧をリセット
+                        rendermain(""); // ★ 確定後は一覧表示を行わず初期状態に戻す
                         focussearchinput();
                     } else {
                         pendingBorrowEmployee = targetemp;
@@ -1354,7 +1354,7 @@
                     }
                     return;
                 } else {
-                    // スキャンモードで完全一致しない場合、曖昧検索での巻き込み・誤動作を防ぐため一覧描画を行わず終了
+                    // ★【重要】スキャンモード中に完全一致しない場合は画面右側を曖昧更新しない（2人ヒットの巻き込みを遮断）
                     clearInputs();
                     return;
                 }
