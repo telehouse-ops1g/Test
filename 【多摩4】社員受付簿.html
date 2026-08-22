@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>社員検索・カード貸出管理システム</title>
+    <title>社員検索・カード貸出管理システム　Ver1.2</title>
     <style>
         /* === 基本設定 === */
         :root {
@@ -1288,7 +1288,7 @@
             return searchinput.value;
         }
 
-        // ★★★ 検索・スキャン自動実行ロジック（完全一致のみで動作し誤判定を100%防止） ★★★
+        // ★★★ 検索・スキャン自動実行ロジック（スキャン/手入力共通で完全一致優先） ★★★
         function executesearch() {
             if (scanTimer) {
                 clearTimeout(scanTimer);
@@ -1300,17 +1300,16 @@
 
             if (!keyword) return;
 
-            // スキャンモード時（QRコードを持っている設定）
-            if (autotogglecheck.checked) {
-                // 社員番号、カード番号、管理番号のいずれかと『完全に一致（===）』する社員をピンポイントで検索
-                const targetemp = employees.find(emp => {
-                    const id = toHalfWidth(emp.id).toLowerCase();
-                    const card = toHalfWidth(emp.card).toLowerCase();
-                    const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
-                    return id === keyword || card === keyword || adminid === keyword;
-                });
+            // ① スキャン・手入力問わず、社員番号・カード番号・管理番号が『完全一致（===）』する社員をピンポイント検索
+            const targetemp = employees.find(emp => {
+                const id = toHalfWidth(emp.id).toLowerCase();
+                const card = toHalfWidth(emp.card).toLowerCase();
+                const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                return id === keyword || card === keyword || adminid === keyword;
+            });
 
-                // ★完全一致した社員が存在する場合のみ即座にステータス切り替えを実行し、他の人が巻き込まれる検索表示を行わない
+            // ② スキャンモード（QRあり）の時、完全一致すれば即座に自動ステータス切り替え
+            if (autotogglecheck.checked) {
                 if (targetemp) {
                     const now = Date.now();
                     if (now - lasttoggletime < 1000) {
@@ -1355,13 +1354,13 @@
                     }
                     return;
                 } else {
-                    // ★完全一致しない場合、スキャンモード中であれば一覧描画も遮断して2人ヒット等の巻き込み表示を防ぐ
+                    // スキャンモードで完全一致しない場合、曖昧検索での巻き込み・誤動作を防ぐため一覧描画を行わず終了
                     clearInputs();
                     return;
                 }
             }
 
-            // 手入力時
+            // ③ 手入力モード（QRなし）時
             rendermain(rawKeyword);
         }
 
@@ -1371,7 +1370,7 @@
             manualidsearch.value = "";
         }
 
-        // 画面右側の一覧表示ロジック
+        // 画面右側の一覧表示ロジック（手入力時も完全一致があれば1人だけ表示）
         function rendermain(filterkeyword = "") {
             employeelist.innerHTML = "";
             const keyword = toHalfWidth(filterkeyword).toLowerCase();
@@ -1383,7 +1382,7 @@
                 return;
             }
 
-            // ① まず完全一致する社員を探す（2人以上ヒットする巻き込み防止）
+            // ★ 手入力時もまず「完全一致（===）」を探し、1人だけヒットさせる
             let exactMatches = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
                 const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1393,10 +1392,10 @@
 
             let filtered = [];
             if (exactMatches.length > 0) {
-                // 完全一致する社員がいればその人だけを表示
+                // 完全一致する人がいればその1人のみ表示（2人以上ヒットする巻き込みを防止）
                 filtered = exactMatches;
             } else {
-                // 完全一致がない場合（手入力の絞り込み時など）のみ部分一致で検索
+                // 完全一致がない場合（氏名の途中入力など）のみ部分一致（includes）で絞り込み
                 filtered = employees.filter(emp => {
                     const idHalf = toHalfWidth(emp.id).toLowerCase();
                     const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1751,7 +1750,7 @@
             focussearchinput();
         });
 
-        // ★★★ 修正箇所：フォーカスあて専用にし、手動文字追加（e.key）を削除して二重入力を防ぐ ★★★
+        // フォーカスあて専用（文字の二重入力を防止）
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
