@@ -464,7 +464,7 @@
         <!-- メイン画面 -->
         <div id="mainview">
             <div class="header">
-                <h1>👤 社員検索・カード貸出ステータス　Ver1.1</h1>
+                <h1>👤 社員検索・カード貸出ステータス Ver1.2</h1>
                 <div class="header-btn-group">
                     <button id="open-history-btn" class="btn btn-gray-dark">📜 貸出・返却履歴</button>
                     <button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 管理画面</button>
@@ -551,7 +551,7 @@
         <div id="adminview" class="hidden">
             <div class="header" style="border-bottom: 2px solid #fca5a5;">
                 <h1 style="color: #b91c1c;">⚙️ 社員情報 管理画面</h1>
-                <button onclick="switchview('admin')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button>
+                <button onclick="switchview('main')" class="btn btn-gray-dark">🔙 メイン画面に戻る</button>
             </div>
             <div class="grid-layout">
                 <div class="sidebar">
@@ -764,6 +764,9 @@
         const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員"];
         const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
 
+        // スキャン後のディレイ時間（ミリ秒指定: 2000 = 2秒）
+        const scanDelayMs = 2000;
+
         let employees = JSON.parse(localStorage.getItem(storage_key)) || [
             { id: "P999999", name: "多摩 太郎", card: "111", status: "returned", lastborrowedtime: "", lastreturnedtime: "", dept: "初期データ", adminid: "000" }
         ];
@@ -778,7 +781,7 @@
         let showOnlyBorrowed = false;
         let pendingBorrowEmployee = null;
 
-        // ★ 自動実行用タイマー変数
+        // タイマー用変数
         let scanTimer = null;
 
         const mainview = document.getElementById('mainview');
@@ -1288,7 +1291,7 @@
             return searchinput.value;
         }
 
-        // ★★★ 検索・スキャン自動実行ロジック（スキャン/手入力共通で完全一致優先） ★★★
+        // ★★★ 検索・スキャン自動実行ロジック ★★★
         function executesearch() {
             if (scanTimer) {
                 clearTimeout(scanTimer);
@@ -1342,7 +1345,7 @@
                         const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
                         showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
                         clearInputs();
-                        rendermain(""); // ★ 確定後は一覧表示を行わず初期状態に戻す
+                        rendermain(""); // 確定後は画面右側の一覧を初期リセット
                         focussearchinput();
                     } else {
                         pendingBorrowEmployee = targetemp;
@@ -1354,7 +1357,7 @@
                     }
                     return;
                 } else {
-                    // ★【重要】スキャンモード中に完全一致しない場合は画面右側を曖昧更新しない（2人ヒットの巻き込みを遮断）
+                    // スキャンモードで完全一致しない場合、曖昧検索での表示や誤動作を防ぐため入力欄を空にして終了
                     clearInputs();
                     return;
                 }
@@ -1382,7 +1385,7 @@
                 return;
             }
 
-            // ★ 手入力時もまず「完全一致（===）」を探し、1人だけヒットさせる
+            // 手入力時もまず「完全一致（===）」を探し、ヒットすれば1人だけ表示
             let exactMatches = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
                 const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1392,10 +1395,9 @@
 
             let filtered = [];
             if (exactMatches.length > 0) {
-                // 完全一致する人がいればその1人のみ表示（2人以上ヒットする巻き込みを防止）
                 filtered = exactMatches;
             } else {
-                // 完全一致がない場合（氏名の途中入力など）のみ部分一致（includes）で絞り込み
+                // 完全一致がない場合（氏名の部分入力など）のみ部分一致で絞り込み
                 filtered = employees.filter(emp => {
                     const idHalf = toHalfWidth(emp.id).toLowerCase();
                     const cardHalf = toHalfWidth(emp.card).toLowerCase();
@@ -1709,33 +1711,43 @@
             focussearchinput();
         });
 
-        // ★ スキャン文字入力検知（タイマー判定 1000ms = 1.0秒）
+        // ★★★ スキャン文字入力検知（ディレイタイマー処理: scanDelayMs 秒待ってから実行） ★★★
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
+            // 入力が入るたびに既存タイマーをクリアしてタイマーを再リセット
             if (scanTimer) {
                 clearTimeout(scanTimer);
                 scanTimer = null;
             }
             
+            // スキャナー入力が停止してから scanDelayMs (0.5秒) 待って自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
                 }
-            }, 1000);
+            }, scanDelayMs);
         });
 
-        // キーボードのEnterキー検知（スキャナーの改行対応）
+        // キーボードのEnterキー検知（スキャナー末尾改行対応）
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
             inputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === 'enter') {
                     e.preventDefault();
+                    if (scanTimer) {
+                        clearTimeout(scanTimer);
+                        scanTimer = null;
+                    }
                     executesearch();
                 }
             });
         });
 
         searchbtn.addEventListener('click', () => {
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
             executesearch();
             focussearchinput();
         });
@@ -1750,7 +1762,7 @@
             focussearchinput();
         });
 
-        // フォーカスあて専用（文字の二重入力を防止）
+        // フォーカスあて専用（二重入力防止）
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
