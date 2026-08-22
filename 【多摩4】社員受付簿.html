@@ -1355,8 +1355,8 @@
                     }
                     return;
                 } else {
-                    // 完全一致しない場合（入力途中や未登録のQRなど）は誰も変更せず画面一覧で候補を表示
-                    rendermain(rawKeyword);
+                    // ★完全一致しない場合、スキャンモード中であれば一覧描画も遮断して2人ヒット等の巻き込み表示を防ぐ
+                    clearInputs();
                     return;
                 }
             }
@@ -1751,7 +1751,7 @@
             focussearchinput();
         });
 
-        // どこを押しても自動でフォーカスをスキャン枠へ合わせる（モーダル等非表示時）
+        // ★★★ 修正箇所：フォーカスあて専用にし、手動文字追加（e.key）を削除して二重入力を防ぐ ★★★
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
