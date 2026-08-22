@@ -844,9 +844,10 @@
         // 全角英数字記号を半角に自動変換する関数
         function toHalfWidth(str) {
             if (!str) return "";
-            return str.replace(/[!-~]/g, function(s) {
+            let res = str.replace(/[!-~]/g, function(s) {
                 return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
             }).replace(/”/g, '"').replace(/’/g, "'").replace(/　/g, " ");
+            return res.replace(/[\r\n\t]/g, "").trim();
         }
 
         autotogglecheck.addEventListener('change', () => {
@@ -1280,84 +1281,87 @@
 
         function getSearchKeyword() {
             if (!autotogglecheck.checked) {
-                const nameVal = manualnamesearch.value.trim();
-                const idVal = manualidsearch.value.trim();
+                const nameVal = manualnamesearch.value;
+                const idVal = manualidsearch.value;
                 return nameVal || idVal || "";
             }
-            return searchinput.value.trim();
+            return searchinput.value;
         }
 
+        // ★★★ 検索・スキャン自動実行ロジック（誤変更・別人の誤判定を完全ブロック） ★★★
         function executesearch() {
-            if (scanTimer) clearTimeout(scanTimer); // タイマーをリセット
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
 
             const rawKeyword = getSearchKeyword();
-            const keyword = toHalfWidth(rawKeyword).trim().toLowerCase();
+            const keyword = toHalfWidth(rawKeyword).toLowerCase();
 
             if (!keyword) return;
 
-            const filtered = employees.filter(emp => {
-                const idHalf = toHalfWidth(emp.id).toLowerCase();
-                const cardHalf = toHalfWidth(emp.card).toLowerCase();
-                const adminidHalf = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
-                const nameLower = emp.name.toLowerCase();
+            // スキャンモード時（QRコードを持っている設定）
+            if (autotogglecheck.checked) {
+                // 社員番号、カード番号、管理番号のいずれかと『完全に一致』する社員を検索
+                const targetemp = employees.find(emp => {
+                    const id = toHalfWidth(emp.id).toLowerCase();
+                    const card = toHalfWidth(emp.card).toLowerCase();
+                    const adminid = emp.adminid ? toHalfWidth(emp.adminid).toLowerCase() : "";
+                    return id === keyword || card === keyword || adminid === keyword;
+                });
 
-                return idHalf.includes(keyword) ||
-                       nameLower.includes(keyword) ||
-                       cardHalf.includes(keyword) ||
-                       adminidHalf.includes(keyword);
-            });
+                // ★完全一致した社員が存在する場合のみ、ステータスを変更する
+                if (targetemp) {
+                    const now = Date.now();
+                    if (now - lasttoggletime < 1000) {
+                        clearInputs();
+                        return;
+                    }
+                    lasttoggletime = now;
 
-            // ★ 入力文字列が 完全一致 する社員がいるかチェック（フライング判定・誤判定防止）
-            const exactMatch = filtered.find(emp => {
-                return toHalfWidth(emp.id).toLowerCase() === keyword ||
-                       toHalfWidth(emp.card).toLowerCase() === keyword ||
-                       (emp.adminid && toHalfWidth(emp.adminid).toLowerCase() === keyword);
-            });
+                    const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
+                    const nowtime = getformatteddatetime();
 
-            if (autotogglecheck.checked && keyword !== "" && exactMatch) {
-                const now = Date.now();
-                if (now - lasttoggletime < 1000) {
-                    clearInputs();
+                    if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
+                        employees = employees.map(emp => {
+                            if (emp.id === targetemp.id) {
+                                const updated = { ...emp, status: newstatus };
+                                if (newstatus === 'borrowed') {
+                                    updated.lastborrowedtime = nowtime;
+                                } else {
+                                    updated.lastreturnedtime = nowtime;
+                                }
+                                return updated;
+                            }
+                            return emp;
+                        });
+                        savetostorage();
+                        sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+                        
+                        addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
+                        
+                        const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
+                        showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
+                        clearInputs();
+                        rendermain("");
+                        focussearchinput();
+                    } else {
+                        pendingBorrowEmployee = targetemp;
+                        borrowmessage.innerHTML = `
+                            <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
+                        `;
+                        borrowmodal.classList.remove('hidden');
+                        clearInputs();
+                    }
+                    return;
+                } else {
+                    // 完全一致しない場合（入力途中・スキャン不備等）、誰のステータスも変更せず検索一覧を表示
+                    rendermain(rawKeyword);
                     return;
                 }
-                lasttoggletime = now;
-                const targetemp = exactMatch;
-                const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
-                const nowtime = getformatteddatetime();
-
-                if (newstatus === 'returned' || shouldexcludepopup(targetemp.dept)) {
-                    employees = employees.map(emp => {
-                        if (emp.id === targetemp.id) {
-                            const updated = { ...emp, status: newstatus };
-                            if (newstatus === 'borrowed') {
-                                updated.lastborrowedtime = nowtime;
-                            } else {
-                                updated.lastreturnedtime = nowtime;
-                            }
-                            return updated;
-                        }
-                        return emp;
-                    });
-                    savetostorage();
-                    sendtospreadsheet(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-                    
-                    addFullHistory(targetemp, newstatus === 'borrowed' ? '貸出' : '返却');
-                    
-                    const statusstr = newstatus === 'borrowed' ? '🔴 貸出中' : '🟢 返却済み';
-                    showtoast(`「${targetemp.name}」さんのステータスを ${statusstr} に変更しました`);
-                    clearInputs();
-                    rendermain("");
-                    focussearchinput();
-                } else {
-                    pendingBorrowEmployee = targetemp;
-                    borrowmessage.innerHTML = `
-                        <strong>氏名：</strong>${targetemp.name}<br><strong>カード番号：</strong>${targetemp.card}<br><strong>管理番号：</strong>${targetemp.adminid || "未設定"}
-                    `;
-                    borrowmodal.classList.remove('hidden');
-                    clearInputs();
-                }
-                return;
             }
+
+            // 手入力時
             rendermain(rawKeyword);
         }
 
@@ -1369,7 +1373,7 @@
 
         function rendermain(filterkeyword = "") {
             employeelist.innerHTML = "";
-            const keyword = toHalfWidth(filterkeyword.trim()).toLowerCase();
+            const keyword = toHalfWidth(filterkeyword).toLowerCase();
 
             let filtered = employees.filter(emp => {
                 const idHalf = toHalfWidth(emp.id).toLowerCase();
@@ -1477,11 +1481,11 @@
 
         registerform.addEventListener('submit', function(e) {
             e.preventDefault();
-            const id = toHalfWidth(regid.value.trim());
+            const id = toHalfWidth(regid.value);
             const name = regname.value.trim();
-            const card = toHalfWidth(regcard.value.trim());
+            const card = toHalfWidth(regcard.value);
             const dept = document.getElementById('regdept').value;
-            const adminid = toHalfWidth(document.getElementById('regadminid').value.trim());
+            const adminid = toHalfWidth(document.getElementById('regadminid').value);
 
             if (employees.some(emp => emp.id === id)) {
                 showerror(`社員番号 [${id}] は既に登録されています。`);
@@ -1530,11 +1534,11 @@
         editform.addEventListener('submit', function(e) {
             e.preventDefault();
             const oldId = editoldid.value;
-            const newId = toHalfWidth(editid.value.trim());
+            const newId = toHalfWidth(editid.value);
             const newName = editname.value.trim();
-            const newCard = toHalfWidth(editcard.value.trim());
+            const newCard = toHalfWidth(editcard.value);
             const newDept = editdept.value;
-            const newAdminId = toHalfWidth(editadminid.value.trim());
+            const newAdminId = toHalfWidth(editadminid.value);
 
             if (employees.some(emp => emp.id === newId && emp.id !== oldId)) {
                 showerror(`社員番号 [${newId}] は既に別の社員で登録されています。`);
@@ -1678,14 +1682,15 @@
             focussearchinput();
         });
 
-        // ★★★ スキャン漏れ防止ガード（タイマー自動確定処理） ★★★
+        // ★ スキャン文字入力検知（タイマー判定 1000ms = 1.0秒）
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
-            // 入力が入るたびにタイマーをリセット
-            if (scanTimer) clearTimeout(scanTimer);
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
             
-            // 高速な連続入力（スキャン）が完了し、文字入力が止まって1.0秒後に自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
@@ -1693,8 +1698,9 @@
             }, 1000);
         });
 
+        // キーボードのEnterキー検知（スキャナーの改行対応）
         [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
-            inputEl.addEventListener('keypress', (e) => {
+            inputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === 'enter') {
                     e.preventDefault();
                     executesearch();
@@ -1708,19 +1714,20 @@
         });
 
         clearbtn.addEventListener('click', () => {
-            if (scanTimer) clearTimeout(scanTimer);
+            if (scanTimer) {
+                clearTimeout(scanTimer);
+                scanTimer = null;
+            }
             clearInputs();
             rendermain("");
             focussearchinput();
         });
 
-        // スキャン有効時（チェックあり）のみ、どこを押しても自動でスキャン枠にフォーカスを入れる
+        // どこを押しても自動でフォーカスをスキャン枠へ合わせる（モーダル等非表示時）
         document.addEventListener('keydown', (e) => {
             if (!mainview.classList.contains('hidden') && !isModalOpen() && autotogglecheck.checked) {
                 if (document.activeElement !== searchinput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     searchinput.focus();
-                    searchinput.value += e.key;
-                    e.preventDefault();
                 }
             }
         });
