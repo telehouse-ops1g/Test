@@ -464,7 +464,7 @@
         <!-- メイン画面 -->
         <div id="mainview">
             <div class="header">
-                <h1>👤 社員検索・カード貸出ステータス Ver1.2</h1>
+                <h1>👤 社員検索・カード貸出ステータス　Ver1.3</h1>
                 <div class="header-btn-group">
                     <button id="open-history-btn" class="btn btn-gray-dark">📜 貸出・返却履歴</button>
                     <button onclick="switchview('admin')" class="btn btn-indigo">⚙️ 管理画面</button>
@@ -706,7 +706,7 @@
     </div>
 
     <div id="editmodal" class="modal-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px;">
-        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: left;">
+        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
             <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #1f2937; text-align: center;">📝 社員情報の編集</h3>
             <form id="editform">
                 <input type="hidden" id="editoldid">
@@ -764,7 +764,7 @@
         const spreadsheet_include_depts = ["テレハウス技術部", "KDDI社員"];
         const popup_exclude_depts = ["DC運用", "グローブシップ", "多摩TCサポート", "センターG(派遣)", "SE(ALTX)"];
 
-        // スキャン後のディレイ時間（ミリ秒指定: 2000 = 2秒）
+        // スキャン後のディレイ時間（ミリ秒指定: 2000 = 2.0秒）
         const scanDelayMs = 2000;
 
         let employees = JSON.parse(localStorage.getItem(storage_key)) || [
@@ -1291,7 +1291,7 @@
             return searchinput.value;
         }
 
-        // ★★★ 検索・スキャン自動実行ロジック ★★★
+        // ★★★ 検索・スキャン自動実行ロジック（スキャン/手入力共通で完全一致優先） ★★★
         function executesearch() {
             if (scanTimer) {
                 clearTimeout(scanTimer);
@@ -1715,13 +1715,13 @@
         searchinput.addEventListener('input', () => {
             if (!autotogglecheck.checked) return;
             
-            // 入力が入るたびに既存タイマーをクリアしてタイマーを再リセット
+            // 入力が入るたびに既存タイマーをクリアしてリセット
             if (scanTimer) {
                 clearTimeout(scanTimer);
                 scanTimer = null;
             }
             
-            // スキャナー入力が停止してから scanDelayMs (0.5秒) 待って自動実行
+            // スキャナー入力が停止してから scanDelayMs (2.0秒) 待って自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
@@ -1729,8 +1729,15 @@
             }, scanDelayMs);
         });
 
-        // キーボードのEnterキー検知（スキャナー末尾改行対応）
-        [searchinput, manualnamesearch, manualidsearch].forEach(inputEl => {
+        // ★★★ スキャン欄（searchinput）では Enterキーによる即時確定を強制ブロック（ディレイタイマーに一任する） ★★★
+        searchinput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'enter') {
+                e.preventDefault(); // スキャナー末尾のEnterで即時実行されるのを阻止！
+            }
+        });
+
+        // 手入力欄（manualnamesearch, manualidsearch）のみ Enterキーで即時実行
+        [manualnamesearch, manualidsearch].forEach(inputEl => {
             inputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === 'enter') {
                     e.preventDefault();
