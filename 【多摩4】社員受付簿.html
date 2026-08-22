@@ -1307,14 +1307,21 @@
                        adminidHalf.includes(keyword);
             });
 
-            if (autotogglecheck.checked && keyword !== "" && filtered.length === 1) {
+            // ★ 入力文字列が 完全一致 する社員がいるかチェック（フライング判定・誤判定防止）
+            const exactMatch = filtered.find(emp => {
+                return toHalfWidth(emp.id).toLowerCase() === keyword ||
+                       toHalfWidth(emp.card).toLowerCase() === keyword ||
+                       (emp.adminid && toHalfWidth(emp.adminid).toLowerCase() === keyword);
+            });
+
+            if (autotogglecheck.checked && keyword !== "" && exactMatch) {
                 const now = Date.now();
                 if (now - lasttoggletime < 1000) {
                     clearInputs();
                     return;
                 }
                 lasttoggletime = now;
-                const targetemp = filtered[0];
+                const targetemp = exactMatch;
                 const newstatus = targetemp.status === 'borrowed' ? 'returned' : 'borrowed';
                 const nowtime = getformatteddatetime();
 
@@ -1678,7 +1685,7 @@
             // 入力が入るたびにタイマーをリセット
             if (scanTimer) clearTimeout(scanTimer);
             
-            // 高速な連続入力（スキャン）が完了し、文字入力が止まって0.15秒後に自動実行
+            // 高速な連続入力（スキャン）が完了し、文字入力が止まって1.0秒後に自動実行
             scanTimer = setTimeout(() => {
                 if (searchinput.value.trim() !== "") {
                     executesearch();
